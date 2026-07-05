@@ -57,7 +57,7 @@
                 <div class="md:col-span-8 space-y-5">
                     <div>
                         <label for="name" class="block text-sm font-semibold text-text-primary mb-1.5">Full Name</label>
-                        <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required class="w-full px-4 py-2.5 bg-navy-900 border border-navy-700/50 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-transparent transition-all light:bg-white light:border-slate-300">
+                        <input type="text" id="name" name="name" value="{{ old('name', $user->getRawOriginal('name')) }}" required class="w-full px-4 py-2.5 bg-navy-900 border border-navy-700/50 rounded-xl text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-transparent transition-all light:bg-white light:border-slate-300">
                     </div>
                     
                     <div>

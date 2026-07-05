@@ -142,6 +142,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Media — all roles, author scoped to own in controller
     Route::middleware('role:super_admin,editor,author')->group(function () {
         Route::resource('media', MediaController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::put('media/{medium}/crop',        [MediaController::class, 'crop'])->name('media.crop');
+        Route::get('media/{medium}/usage',       [MediaController::class, 'usage'])->name('media.usage');
         Route::delete('media/{medium}/original', [MediaController::class, 'destroyOriginal'])->name('media.destroy_original');
         Route::post('media/{medium}/alt-text',   [\App\Http\Controllers\Admin\AiController::class, 'generateAltText'])->name('media.alt_text');
     });

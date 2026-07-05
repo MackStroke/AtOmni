@@ -9,34 +9,80 @@
 @endsection
 
 @section('content')
-<div class="page-header mb-6 flex flex-wrap items-center justify-between gap-3">
+<div class="page-header mb-6 flex flex-wrap items-center justify-between gap-4">
     <div>
         <h1 class="text-xl sm:text-3xl font-bold tracking-tight text-text-primary">Media Library</h1>
         <p class="text-sm text-text-muted mt-1">Manage files, compress to WebP, add metadata, and crop images.</p>
     </div>
     
     <div class="flex flex-wrap items-center gap-3">
-        <!-- Search -->
-        <form method="GET" action="{{ route('admin.media.index') }}" class="relative w-full sm:w-auto">
-            <input type="text" aria-label="Search" name="search" value="{{ request('search') }}" placeholder="Search media..." class="w-full pl-9 pr-4 py-2 rounded-lg bg-navy-800/50 border border-navy-700/50 text-sm focus:border-electric focus:ring-1 focus:ring-electric sm:w-64">
+        <!-- Advanced Filters Form -->
+        <form method="GET" action="{{ route('admin.media.index') }}" id="filter-form" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <input type="hidden" name="view" value="{{ $viewType }}">
-            <svg class="w-4 h-4 text-text-muted absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            
+            <!-- Search -->
+            <div class="relative w-full sm:w-auto">
+                <input type="text" aria-label="Search" name="search" value="{{ request('search') }}" placeholder="Search media..." class="w-full pl-9 pr-4 py-1.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-xs focus:border-electric focus:ring-1 focus:ring-electric sm:w-48 h-[38px]">
+                <svg class="w-4 h-4 text-text-muted absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+
+            <!-- Type Filter -->
+            <select name="type" onchange="document.getElementById('filter-form').submit()" aria-label="Filter by type" class="px-2.5 py-1.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-xs text-text-secondary focus:border-electric focus:ring-1 focus:ring-electric cursor-pointer h-[38px]">
+                <option value="">All Types</option>
+                <option value="image" {{ request('type') === 'image' ? 'selected' : '' }}>Images</option>
+                <option value="video" {{ request('type') === 'video' ? 'selected' : '' }}>Videos</option>
+                <option value="audio" {{ request('type') === 'audio' ? 'selected' : '' }}>Audio</option>
+                <option value="document" {{ request('type') === 'document' ? 'selected' : '' }}>Documents</option>
+            </select>
+
+            <!-- Date Filter -->
+            <select name="date" onchange="document.getElementById('filter-form').submit()" aria-label="Filter by date" class="px-2.5 py-1.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-xs text-text-secondary focus:border-electric focus:ring-1 focus:ring-electric cursor-pointer h-[38px]">
+                <option value="">All Dates</option>
+                @foreach($dates as $date)
+                    <option value="{{ $date->value }}" {{ request('date') === $date->value ? 'selected' : '' }}>{{ $date->label }}</option>
+                @endforeach
+            </select>
+
+            <!-- Sort Filter -->
+            <select name="sort" onchange="document.getElementById('filter-form').submit()" aria-label="Sort by" class="px-2.5 py-1.5 rounded-lg bg-navy-800/50 border border-navy-700/50 text-xs text-text-secondary focus:border-electric focus:ring-1 focus:ring-electric cursor-pointer h-[38px]">
+                <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>Latest</option>
+                <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Oldest</option>
+                <option value="size_desc" {{ request('sort') === 'size_desc' ? 'selected' : '' }}>Size (Largest)</option>
+                <option value="size_asc" {{ request('sort') === 'size_asc' ? 'selected' : '' }}>Size (Smallest)</option>
+                <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
+                <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
+            </select>
+
+            @if(request()->anyFilled(['search', 'type', 'date', 'sort']))
+                <a href="{{ route('admin.media.index', ['view' => $viewType]) }}" class="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-semibold hover:bg-rose-500/20 transition-all flex items-center gap-1 h-[38px]" title="Clear all filters">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    Clear
+                </a>
+            @endif
         </form>
 
-        <div class="flex items-center gap-3 w-full sm:w-auto">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
             <!-- View Toggle -->
-            <div class="bg-navy-800/50 p-1 rounded-lg border border-navy-700/50 flex shrink-0">
-                <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}" class="p-1.5 rounded-md {{ $viewType === 'grid' ? 'bg-navy-700 text-electric' : 'text-text-muted hover:text-text-primary' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            <div class="bg-navy-800/50 p-1 rounded-lg border border-navy-700/50 flex shrink-0 h-[38px] items-center">
+                <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}" class="p-1 rounded-md {{ $viewType === 'grid' ? 'bg-navy-700 text-electric' : 'text-text-muted hover:text-text-primary' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 </a>
-                <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="p-1.5 rounded-md {{ $viewType === 'list' ? 'bg-navy-700 text-electric' : 'text-text-muted hover:text-text-primary' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="p-1 rounded-md {{ $viewType === 'list' ? 'bg-navy-700 text-electric' : 'text-text-muted hover:text-text-primary' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </a>
             </div>
     
+            @if($viewType === 'grid')
+            <!-- Bulk Select Toggle -->
+            <button type="button" onclick="toggleBulkSelectMode()" id="btn-bulk-select-toggle" class="px-3 py-2 border border-navy-700/50 rounded-lg hover:bg-navy-800 text-xs text-text-secondary font-bold transition-all flex items-center gap-1.5 h-[38px]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                Bulk Select
+            </button>
+            @endif
+
             <!-- Upload Button -->
-            <button onclick="openUploadModal()" class="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            <button onclick="openUploadModal()" class="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-[38px] text-xs">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                 UPLOAD
             </button>
         </div>
@@ -52,7 +98,13 @@
             <!-- Grid View -->
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                 @foreach($media as $file)
-                    <div onclick="openDetailModal({{ $file->toJson() }})" class="cursor-pointer group relative bg-navy-950/40 border border-navy-700/30 rounded-xl overflow-hidden hover:border-accent-blue/50 transition-colors aspect-square flex flex-col shadow-sm hover:shadow-md">
+                    <div onclick="handleGridCardClick(event, {{ $file->toJson() }})" class="cursor-pointer group relative bg-navy-950/40 border border-navy-700/30 rounded-xl overflow-hidden hover:border-accent-blue/50 transition-colors aspect-square flex flex-col shadow-sm hover:shadow-md media-grid-card" data-id="{{ $file->id }}">
+                        
+                        <!-- Grid Selection Checkbox overlay -->
+                        <div class="bulk-select-checkbox-wrapper absolute top-2.5 right-2.5 hidden z-30" onclick="event.stopPropagation();">
+                            <input type="checkbox" aria-label="Select item" value="{{ $file->id }}" onchange="handleGridCheckboxChange()" class="grid-bulk-checkbox rounded border-navy-700/50 bg-navy-800/50 text-electric focus:ring-electric w-4 h-4 cursor-pointer">
+                        </div>
+
                         <div class="flex-1 overflow-hidden bg-navy-900/40 flex items-center justify-center relative p-3">
                             @if(\Illuminate\Support\Str::startsWith($file->mime_type, 'image/'))
                                 <img loading="lazy" src="{{ asset('storage/' . $file->optimizedPath()) }}" alt="{{ $file->alt_text ?: $file->file_name }}" class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300">
@@ -322,13 +374,36 @@
 
 {{-- Detail Pane Modal --}}
 <div id="detail-modal" class="fixed inset-0 z-50 hidden bg-navy-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-navy-900 border border-navy-700 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row shadow-2xl overflow-hidden relative">
+    <div class="bg-navy-900 border border-navy-700 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row shadow-2xl overflow-hidden relative animate-fade-in">
         <button onclick="closeDetailModal()" class="absolute top-4 right-4 z-10 p-2 bg-navy-950/50 rounded-full text-text-muted hover:text-white backdrop-blur"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
         
         <!-- Preview Side -->
         <div class="flex-1 bg-navy-950/50 p-4 md:p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-navy-700 min-h-[200px] md:min-h-[300px]">
-            <img loading="lazy" id="detail-preview" class="max-w-full max-h-[40vh] md:max-h-[60vh] object-contain rounded-lg shadow-lg">
-            <div id="detail-icon" class="hidden w-24 h-24 text-slate-500"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg></div>
+            <div class="w-full flex-1 flex flex-col items-center justify-center relative overflow-hidden bg-navy-950/20 rounded-xl min-h-[220px] md:min-h-[340px]">
+                <img loading="lazy" id="detail-preview" class="max-w-full max-h-[40vh] md:max-h-[50vh] object-contain rounded-lg shadow-lg">
+                <div id="detail-icon" class="hidden w-24 h-24 text-slate-500"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg></div>
+            </div>
+
+            <!-- Image Edit Panel (Crop controls) -->
+            <div id="image-edit-panel" class="hidden flex-col gap-3 w-full bg-navy-950/30 p-4 rounded-xl border border-navy-800/80 mt-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="detailCropper.zoom(0.1)" class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 rounded text-xs text-text-secondary font-bold">Zoom In</button>
+                        <button type="button" onclick="detailCropper.zoom(-0.1)" class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 rounded text-xs text-text-secondary font-bold">Zoom Out</button>
+                        <button type="button" onclick="detailCropper.rotate(90)" class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 rounded text-xs text-text-secondary font-bold">Rotate 90&deg;</button>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button type="button" onclick="detailCropper.setAspectRatio(NaN)" class="px-2.5 py-1.5 bg-navy-800 hover:bg-emerald-500/20 hover:text-emerald-400 rounded text-xs text-text-secondary font-bold transition-colors">Free</button>
+                        <button type="button" onclick="detailCropper.setAspectRatio(1)" class="px-2.5 py-1.5 bg-navy-800 hover:bg-emerald-500/20 hover:text-emerald-400 rounded text-xs text-text-secondary font-bold transition-colors">1:1</button>
+                        <button type="button" onclick="detailCropper.setAspectRatio(16/9)" class="px-2.5 py-1.5 bg-navy-800 hover:bg-emerald-500/20 hover:text-emerald-400 rounded text-xs text-text-secondary font-bold transition-colors">16:9</button>
+                        <button type="button" onclick="detailCropper.setAspectRatio(4/3)" class="px-2.5 py-1.5 bg-navy-800 hover:bg-emerald-500/20 hover:text-emerald-400 rounded text-xs text-text-secondary font-bold transition-colors">4:3</button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="saveCroppedDetailImage()" id="btn-save-crop" class="px-4 py-1.5 bg-emerald-500 text-white hover:opacity-90 transition-opacity rounded-lg text-xs font-bold shadow-md shadow-emerald-500/25">Apply Crop</button>
+                        <button type="button" onclick="cancelEditImageMode()" class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 rounded-lg text-xs font-semibold text-text-muted hover:text-text-primary">Cancel</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Info Side -->
@@ -346,7 +421,7 @@
                             <div class="flex items-center justify-between">
                                 <label for="detail-alt" class="block text-xs text-text-muted mb-1">Alt Text</label>
                                 <button type="button" onclick="generateAltText()" id="btn-ai-alt" class="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                     Auto-Generate with AI
                                 </button>
                             </div>
@@ -368,15 +443,24 @@
                 </div>
             </div>
 
+            <!-- Usage Tracking Section -->
+            <div id="detail-usage-section" class="border-t border-navy-700 pt-5 space-y-2">
+                <h4 class="text-xs text-text-muted uppercase tracking-wider font-bold">Used In</h4>
+                <div id="detail-usage-list" class="space-y-1.5 text-xs text-text-secondary">
+                    <span class="text-text-muted italic">Scanning for usage...</span>
+                </div>
+            </div>
+
             <div class="mt-auto pt-6 flex flex-col gap-2">
                 <button onclick="copyDetailUrl()" class="px-4 py-2 bg-navy-800 hover:bg-navy-700 transition-colors rounded-lg text-sm text-text-primary font-bold">Copy URL</button>
+                <button type="button" onclick="toggleEditImageMode()" id="btn-edit-image-toggle" class="px-4 py-2 bg-navy-800 hover:bg-navy-700 transition-colors rounded-lg text-sm text-text-primary font-bold hidden">Edit Image</button>
                 
                 <form id="delete-original-form" method="POST" class="hidden" onsubmit="return confirm('Are you sure you want to delete the uncompressed original file to save space? The WebP version will be kept.')">
                     @csrf @method('DELETE')
                     <button type="submit" class="w-full px-4 py-2 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition-colors rounded-lg text-sm font-bold">Delete Original (Keep WebP)</button>
                 </form>
 
-                <form id="delete-form" method="POST" onsubmit="return confirm('Are you sure you want to completely delete this media from the library?')">
+                <form id="delete-form" method="POST">
                     @csrf @method('DELETE')
                     <button type="submit" class="w-full px-4 py-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-colors rounded-lg text-sm font-bold">Delete Entire Media</button>
                 </form>
@@ -385,9 +469,35 @@
     </div>
 </div>
 
+<!-- Floating Bulk Select Action Bar -->
+<div id="grid-bulk-bar" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-navy-900 border border-navy-700/80 rounded-2xl px-6 py-4 shadow-2xl hidden items-center gap-6 animate-slide-up backdrop-blur-md">
+    <span class="text-sm font-bold text-text-primary" id="grid-bulk-count">0 items selected</span>
+    <div class="h-4 w-px bg-navy-700"></div>
+    <div class="flex items-center gap-2">
+        <button type="button" onclick="submitGridBulkAction('auto_fill')" class="px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border border-emerald-500/20">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Auto-Fill AI
+        </button>
+        <button type="button" onclick="submitGridBulkAction('delete')" class="px-4 py-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border border-rose-500/20">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Delete Selected
+        </button>
+        <button type="button" onclick="exitBulkSelectMode()" class="px-3 py-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-xs font-semibold text-text-muted hover:text-text-primary transition-all">
+            Cancel
+        </button>
+    </div>
+</div>
+
 <script>
     let cropper = null;
     let selectedFile = null;
+
+    // Bulk Select globals
+    let isBulkSelectModeActive = false;
+
+    // Inline Image Editor globals
+    let detailCropper = null;
+    let isMediaInUse = false;
 
     function openUploadModal() {
         document.getElementById('upload-modal').classList.remove('hidden');
@@ -413,6 +523,203 @@
             cropper.destroy();
             cropper = null;
         }
+    }
+
+    // Grid view card click interceptor
+    function handleGridCardClick(event, fileData) {
+        if (isBulkSelectModeActive) {
+            event.stopPropagation();
+            event.preventDefault();
+            // Toggle checkbox
+            const checkbox = event.currentTarget.querySelector('.grid-bulk-checkbox');
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+                handleGridCheckboxChange();
+            }
+        } else {
+            openDetailModal(fileData);
+        }
+    }
+
+    // Toggle Bulk Select mode
+    function toggleBulkSelectMode() {
+        isBulkSelectModeActive = !isBulkSelectModeActive;
+        const btn = document.getElementById('btn-bulk-select-toggle');
+        const checkboxWrappers = document.querySelectorAll('.bulk-select-checkbox-wrapper');
+
+        if (isBulkSelectModeActive) {
+            btn.classList.add('bg-electric', 'text-white', 'border-electric');
+            btn.classList.remove('hover:bg-navy-800', 'text-text-secondary');
+            checkboxWrappers.forEach(w => w.classList.remove('hidden'));
+        } else {
+            btn.classList.remove('bg-electric', 'text-white', 'border-electric');
+            btn.classList.add('hover:bg-navy-800', 'text-text-secondary');
+            checkboxWrappers.forEach(w => {
+                w.classList.add('hidden');
+                const cb = w.querySelector('.grid-bulk-checkbox');
+                if (cb) cb.checked = false;
+            });
+            document.getElementById('grid-bulk-bar').classList.add('hidden');
+            document.getElementById('grid-bulk-bar').classList.remove('flex');
+            document.querySelectorAll('.media-grid-card').forEach(c => {
+                c.classList.remove('border-electric', 'ring-1', 'ring-electric');
+            });
+        }
+    }
+
+    // Update floating bar and card highlights on checkbox changes
+    function handleGridCheckboxChange() {
+        const checkboxes = document.querySelectorAll('.grid-bulk-checkbox');
+        let selectedCount = 0;
+
+        checkboxes.forEach(cb => {
+            const card = cb.closest('.media-grid-card');
+            if (cb.checked) {
+                selectedCount++;
+                if (card) card.classList.add('border-electric', 'ring-1', 'ring-electric');
+            } else {
+                if (card) card.classList.remove('border-electric', 'ring-1', 'ring-electric');
+            }
+        });
+
+        const bar = document.getElementById('grid-bulk-bar');
+        const countLabel = document.getElementById('grid-bulk-count');
+
+        if (selectedCount > 0) {
+            countLabel.innerText = selectedCount + (selectedCount === 1 ? ' item' : ' items') + ' selected';
+            bar.classList.remove('hidden');
+            bar.classList.add('flex');
+        } else {
+            bar.classList.add('hidden');
+            bar.classList.remove('flex');
+        }
+    }
+
+    // Cancel Bulk Select
+    function exitBulkSelectMode() {
+        if (isBulkSelectModeActive) {
+            toggleBulkSelectMode();
+        }
+    }
+
+    // Submit bulk action for selected grid items
+    function submitGridBulkAction(action) {
+        const checkedBoxes = document.querySelectorAll('.grid-bulk-checkbox:checked');
+        if (checkedBoxes.length === 0) {
+            alert('Please select at least one media item.');
+            return;
+        }
+
+        if (action === 'delete') {
+            if (!confirm('Are you absolutely sure you want to delete the ' + checkedBoxes.length + ' selected item(s)? This will permanently delete the files from disk!')) {
+                return;
+            }
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route('admin.bulk', 'media') }}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
+
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = action;
+        form.appendChild(actionInput);
+
+        checkedBoxes.forEach(cb => {
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'ids[]';
+            idInput.value = cb.value;
+            form.appendChild(idInput);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Inline image cropping editor toggles
+    let currentDetailMedia = null;
+
+    function toggleEditImageMode() {
+        if (!currentDetailMedia) return;
+
+        document.getElementById('media-update-form').classList.add('hidden');
+        document.getElementById('btn-edit-image-toggle').classList.add('hidden');
+        
+        document.getElementById('image-edit-panel').classList.remove('hidden');
+        document.getElementById('image-edit-panel').classList.add('flex');
+
+        const img = document.getElementById('detail-preview');
+        detailCropper = new Cropper(img, {
+            viewMode: 1,
+            autoCropArea: 0.8,
+            responsive: true,
+            background: false
+        });
+    }
+
+    function cancelEditImageMode() {
+        if (detailCropper) {
+            detailCropper.destroy();
+            detailCropper = null;
+        }
+
+        document.getElementById('media-update-form').classList.remove('hidden');
+        document.getElementById('btn-edit-image-toggle').classList.remove('hidden');
+        
+        document.getElementById('image-edit-panel').classList.add('hidden');
+        document.getElementById('image-edit-panel').classList.remove('flex');
+    }
+
+    function saveCroppedDetailImage() {
+        if (!detailCropper || !currentDetailMedia) return;
+
+        const btn = document.getElementById('btn-save-crop');
+        const originalText = btn.innerText;
+        btn.innerText = 'Cropping...';
+        btn.disabled = true;
+
+        const canvas = detailCropper.getCroppedCanvas({
+            maxWidth: 4096,
+            maxHeight: 4096
+        });
+
+        const croppedData = canvas.toDataURL(currentDetailMedia.mime_type, 0.85);
+
+        fetch(updateRouteBase + '/' + currentDetailMedia.id + '/crop', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                image: croppedData
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', 'Image cropped and saved successfully!');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showAlert('error', data.error || 'Failed to crop image.');
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            showAlert('error', 'Network error during image crop.');
+            btn.innerText = originalText;
+            btn.disabled = false;
+        });
     }
 
     function handleFileSelect(event) {
@@ -609,6 +916,7 @@
     let currentDetailUrl = '';
 
     function openDetailModal(fileData) {
+        currentDetailMedia = fileData;
         document.getElementById('detail-modal').classList.remove('hidden');
         
         currentDetailUrl = assetBase + '/' + (fileData.webp_path || fileData.file_path);
@@ -620,9 +928,11 @@
             preview.src = currentDetailUrl;
             preview.classList.remove('hidden');
             icon.classList.add('hidden');
+            document.getElementById('btn-edit-image-toggle').classList.remove('hidden');
         } else {
             preview.classList.add('hidden');
             icon.classList.remove('hidden');
+            document.getElementById('btn-edit-image-toggle').classList.add('hidden');
         }
 
         // Populate Forms
@@ -679,9 +989,46 @@
         } else {
             deleteOriginalForm.classList.add('hidden');
         }
+
+        // Fetch usage data
+        const usageList = document.getElementById('detail-usage-list');
+        usageList.innerHTML = '<span class="text-text-muted italic">Scanning for usage...</span>';
+        isMediaInUse = false;
+
+        fetch(updateRouteBase + '/' + fileData.id + '/usage')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.posts.length === 0) {
+                        usageList.innerHTML = '<span class="text-emerald-400 font-semibold">✓ Not used in any posts. (Safe to delete)</span>';
+                        isMediaInUse = false;
+                    } else {
+                        isMediaInUse = true;
+                        let html = '<span class="text-rose-400 font-semibold block mb-1">⚠ Used in ' + data.posts.length + ' post(s):</span>';
+                        data.posts.forEach(post => {
+                            html += `<a href="${post.edit_url}" target="_blank" class="block text-electric hover:underline font-medium py-0.5 truncate">↳ ${post.title}</a>`;
+                        });
+                        usageList.innerHTML = html;
+                    }
+                } else {
+                    usageList.innerHTML = '<span class="text-text-muted">Failed to load usage data.</span>';
+                }
+            })
+            .catch(err => {
+                usageList.innerHTML = '<span class="text-text-muted">Network error.</span>';
+            });
+
+        // Set form delete safety validation
+        document.getElementById('delete-form').onsubmit = function(e) {
+            if (isMediaInUse) {
+                return confirm('WARNING: This media is currently in use in active posts! Deleting it will result in broken images. Are you absolutely sure you want to permanently delete it?');
+            }
+            return confirm('Are you sure you want to completely delete this media from the library?');
+        };
     }
 
     function closeDetailModal() {
+        cancelEditImageMode();
         document.getElementById('detail-modal').classList.add('hidden');
     }
 

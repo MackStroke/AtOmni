@@ -35,7 +35,7 @@
                 {{-- Name --}}
                 <div>
                     <label for="name" class="block text-sm font-bold text-text-secondary mb-1.5">Full Name <span class="text-rose-400">*</span></label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required
+                    <input type="text" name="name" id="name" value="{{ old('name', $user->getRawOriginal('name')) }}" required
                         class="block w-full px-4 py-3 rounded-xl bg-navy-950/40 border border-navy-700/20 text-text-primary placeholder-text-muted focus:ring-2 focus:ring-accent-blue focus:border-transparent transition-all font-medium">
                     @error('name')<p class="mt-1.5 text-sm text-rose-400 font-medium">{{ $message }}</p>@enderror
                 </div>

@@ -20,11 +20,40 @@ class MediaController extends Controller
         /** @var \Illuminate\Database\Eloquent\Builder $query */
         $query = Media::with('uploader');
 
-        if ($request->has('sort')) {
-            $dir = strtolower($request->input('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
-            $query->orderBy($request->sort, $dir);
-        } else {
-            $query->latest();
+        // Extract unique upload month-years
+        $dates = Media::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as value, DATE_FORMAT(created_at, '%M %Y') as label")
+            ->groupBy('value', 'label')
+            ->orderBy('value', 'desc')
+            ->get();
+
+        // Apply filters
+        if ($dateFilter = $request->input('date')) {
+            $query->whereRaw("DATE_FORMAT(created_at, '%Y-%m') = ?", [$dateFilter]);
+        }
+
+        if ($typeFilter = $request->input('type')) {
+            if ($typeFilter === 'image') {
+                $query->where('mime_type', 'like', 'image/%');
+            } elseif ($typeFilter === 'video') {
+                $query->where('mime_type', 'like', 'video/%');
+            } elseif ($typeFilter === 'audio') {
+                $query->where('mime_type', 'like', 'audio/%');
+            } elseif ($typeFilter === 'document') {
+                $query->where(function($q) {
+                    $q->where('mime_type', 'like', 'application/%')
+                      ->orWhere('mime_type', 'like', 'text/%')
+                      ->orWhere(function($sub) {
+                          $sub->where('mime_type', 'not like', 'image/%')
+                              ->where('mime_type', 'not like', 'video/%')
+                              ->where('mime_type', 'not like', 'audio/%');
+                      });
+                });
+            }
+        }
+
+        // Apply search
+        if ($search = $request->input('search')) {
+            $query->whereRaw('(file_name LIKE ? OR alt_text LIKE ?)', ["%{$search}%", "%{$search}%"]);
         }
 
         // Authors only see their own uploads
@@ -32,8 +61,28 @@ class MediaController extends Controller
             $query->where('user_id', auth()->id());
         }
 
-        if ($search = $request->input('search')) {
-            $query->whereRaw('(file_name LIKE ? OR alt_text LIKE ?)', ["%{$search}%", "%{$search}%"]);
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        switch ($sort) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'size_desc':
+                $query->orderBy('size_kb', 'desc');
+                break;
+            case 'size_asc':
+                $query->orderBy('size_kb', 'asc');
+                break;
+            case 'name_asc':
+                $query->orderBy('file_name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('file_name', 'desc');
+                break;
+            case 'latest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
         }
 
         if ($request->has('fetch_all_ids')) {
@@ -48,7 +97,7 @@ class MediaController extends Controller
 
         $viewType = $request->input('view', 'grid');
 
-        return view('admin.media.index', compact('media', 'viewType'));
+        return view('admin.media.index', compact('media', 'viewType', 'dates'));
     }
 
     public function store(Request $request)
@@ -145,13 +194,225 @@ class MediaController extends Controller
             'alt_text' => 'nullable|string|max:255',
         ]);
 
-        $medium->update($validated);
+        $oldFileName = $medium->file_name;
+        $newFileName = trim($validated['file_name']);
+        
+        $medium->alt_text = $validated['alt_text'];
+
+        if ($newFileName && $newFileName !== $oldFileName) {
+            // Sanitize extension
+            $oldExt = pathinfo($oldFileName, PATHINFO_EXTENSION);
+            $newExt = pathinfo($newFileName, PATHINFO_EXTENSION);
+            
+            // Force the original extension if missing or different
+            if (strtolower($newExt) !== strtolower($oldExt)) {
+                $newFileName = pathinfo($newFileName, PATHINFO_FILENAME) . '.' . $oldExt;
+            }
+            
+            // Clean name
+            $newNameWithoutExt = Str::slug(pathinfo($newFileName, PATHINFO_FILENAME));
+            $finalNewName = $newNameWithoutExt . '.' . $oldExt;
+            
+            // Determine directory
+            $dir = dirname($medium->file_path);
+            if ($dir === '.' || $dir === '/') {
+                $dir = 'uploads';
+                if (Str::startsWith($medium->mime_type, 'image/')) $dir = 'images';
+                elseif (Str::startsWith($medium->mime_type, 'video/')) $dir = 'videos';
+                elseif (Str::startsWith($medium->mime_type, 'audio/')) $dir = 'audio';
+            }
+            
+            $newFilePath = ($dir ? $dir . '/' : '') . $finalNewName;
+            
+            // Move original file physically on disk
+            $oldFilePath = $medium->file_path;
+            $oldWebpPath = $medium->webp_path;
+            $newWebpPath = null;
+
+            if ($newFilePath !== $oldFilePath) {
+                if (Storage::disk('public')->exists($oldFilePath)) {
+                    if (Storage::disk('public')->exists($newFilePath)) {
+                        $finalNewName = $newNameWithoutExt . '-' . time() . '.' . $oldExt;
+                        $newFilePath = ($dir ? $dir . '/' : '') . $finalNewName;
+                    }
+                    Storage::disk('public')->move($oldFilePath, $newFilePath);
+                }
+                $medium->file_path = $newFilePath;
+                $medium->file_name = $finalNewName;
+            }
+            
+            // Move WebP version if it exists
+            if ($oldWebpPath) {
+                $webpDir = dirname($oldWebpPath);
+                $newWebpPath = ($webpDir === '.' ? '' : $webpDir . '/') . $newNameWithoutExt . '.webp';
+                if ($newWebpPath !== $oldWebpPath) {
+                    if (Storage::disk('public')->exists($oldWebpPath)) {
+                        if (Storage::disk('public')->exists($newWebpPath)) {
+                            $newWebpPath = ($webpDir === '.' ? '' : $webpDir . '/') . $newNameWithoutExt . '-' . time() . '.webp';
+                        }
+                        Storage::disk('public')->move($oldWebpPath, $newWebpPath);
+                    }
+                    $medium->webp_path = $newWebpPath;
+                }
+            }
+
+            // Sync post references in DB
+            $this->updatePostReferences($oldFilePath, $medium->file_path, $oldWebpPath, $medium->webp_path);
+        }
+
+        $medium->save();
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => true, 'media' => $medium]);
         }
 
         return back()->with('success', 'Media metadata updated.');
+    }
+
+    public function crop(Request $request, Media $medium)
+    {
+        $request->validate([
+            'image' => 'required|string', // base64 representation of cropped canvas
+        ]);
+
+        if (!str_starts_with($medium->mime_type, 'image/')) {
+            return response()->json(['error' => 'Media is not an image.'], 400);
+        }
+
+        $base64Data = $request->input('image');
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+            $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+        }
+        $decodedData = base64_decode($base64Data);
+
+        if (!$decodedData) {
+            return response()->json(['error' => 'Invalid image data.'], 400);
+        }
+
+        $manager = new ImageManager(new Driver());
+        $image = $manager->read($decodedData);
+        
+        $extension = pathinfo($medium->file_path, PATHINFO_EXTENSION);
+        $isWebp = strtolower($extension) === 'webp';
+        
+        if ($isWebp) {
+            $encoded = $image->toWebp(85);
+        } else {
+            $encoded = match(strtolower($extension)) {
+                'png' => $image->toPng(),
+                'gif' => $image->toGif(),
+                default => $image->toJpeg(85),
+            };
+        }
+
+        // Overwrite file_path
+        Storage::disk('public')->put($medium->file_path, (string) $encoded);
+
+        // Overwrite webp_path if it exists separately
+        if ($medium->webp_path && $medium->webp_path !== $medium->file_path) {
+            $encodedWebp = $image->toWebp(85);
+            Storage::disk('public')->put($medium->webp_path, (string) $encodedWebp);
+        }
+
+        // Recalculate size and dimensions
+        $sizeKb = Storage::disk('public')->size($medium->file_path) / 1024;
+        
+        $medium->update([
+            'size_kb' => (int) $sizeKb,
+            'width' => $image->width(),
+            'height' => $image->height(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'media' => $medium,
+            'url' => asset('storage/' . $medium->optimizedPath()) . '?v=' . time(),
+        ]);
+    }
+
+    public function usage(Request $request, Media $medium)
+    {
+        $filePath = $medium->file_path;
+        $webpPath = $medium->webp_path;
+
+        // Search for posts containing this media in featured_image or content
+        $postsQuery = \App\Models\Post::select('id', 'title', 'slug', 'featured_image', 'content')
+            ->where(function($query) use ($filePath, $webpPath) {
+                $query->where('featured_image', $filePath)
+                    ->orWhere('featured_image', 'storage/' . $filePath)
+                    ->orWhere('featured_image', '/' . $filePath)
+                    ->orWhere('featured_image', '/storage/' . $filePath);
+
+                if ($webpPath) {
+                    $query->orWhere('featured_image', $webpPath)
+                        ->orWhere('featured_image', 'storage/' . $webpPath)
+                        ->orWhere('featured_image', '/' . $webpPath)
+                        ->orWhere('featured_image', '/storage/' . $webpPath);
+                }
+            })
+            ->orWhere('content', 'like', "%{$filePath}%");
+
+        if ($webpPath) {
+            $postsQuery->orWhere('content', 'like', "%{$webpPath}%");
+        }
+
+        $posts = $postsQuery->get()->map(function($post) {
+            return [
+                'id' => $post->id,
+                'title' => $post->title,
+                'edit_url' => route('admin.posts.edit', $post->id),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'posts' => $posts,
+        ]);
+    }
+
+    private function updatePostReferences($oldPath, $newPath, $oldWebpPath = null, $newWebpPath = null)
+    {
+        // 1. Update featured_image references
+        \App\Models\Post::where('featured_image', $oldPath)
+            ->orWhere('featured_image', 'storage/' . $oldPath)
+            ->orWhere('featured_image', '/' . $oldPath)
+            ->orWhere('featured_image', '/storage/' . $oldPath)
+            ->update(['featured_image' => $newPath]);
+
+        if ($oldWebpPath && $newWebpPath) {
+            \App\Models\Post::where('featured_image', $oldWebpPath)
+                ->orWhere('featured_image', 'storage/' . $oldWebpPath)
+                ->orWhere('featured_image', '/' . $oldWebpPath)
+                ->orWhere('featured_image', '/storage/' . $oldWebpPath)
+                ->update(['featured_image' => $newWebpPath]);
+        }
+
+        // 2. Update content HTML body references
+        $posts = \App\Models\Post::where('content', 'like', "%{$oldPath}%")
+            ->orWhere(function($query) use ($oldWebpPath) {
+                if ($oldWebpPath) {
+                    $query->where('content', 'like', "%{$oldWebpPath}%");
+                }
+            })->get();
+
+        foreach ($posts as $post) {
+            $updatedContent = str_replace($oldPath, $newPath, $post->content);
+            if ($oldWebpPath && $newWebpPath) {
+                $updatedContent = str_replace($oldWebpPath, $newWebpPath, $updatedContent);
+            }
+
+            $oldUrl = asset('storage/' . $oldPath);
+            $newUrl = asset('storage/' . $newPath);
+            $updatedContent = str_replace($oldUrl, $newUrl, $updatedContent);
+
+            if ($oldWebpPath && $newWebpPath) {
+                $oldWebpUrl = asset('storage/' . $oldWebpPath);
+                $newWebpUrl = asset('storage/' . $newWebpPath);
+                $updatedContent = str_replace($oldWebpUrl, $newWebpUrl, $updatedContent);
+            }
+
+            $post->update(['content' => $updatedContent]);
+        }
     }
 
     public function destroy(Media $medium)
