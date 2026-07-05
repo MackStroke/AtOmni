@@ -1,0 +1,102 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# ══════════════════════════════════════════════════════════════
+#  PERFORMANCE: Compression, Caching, Security Headers
+# ══════════════════════════════════════════════════════════════
+
+# ── Gzip Compression ─────────────────────────────────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/ld+json
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE font/woff2
+    AddOutputFilterByType DEFLATE font/woff
+    AddOutputFilterByType DEFLATE font/ttf
+
+    # Remove browser bugs (only needed for really old browsers)
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+    Header append Vary User-Agent
+</IfModule>
+
+# ── Brotli Compression (if available, preferred over gzip) ───
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/plain
+    AddOutputFilterByType BROTLI_COMPRESS application/javascript application/json
+    AddOutputFilterByType BROTLI_COMPRESS image/svg+xml font/woff2
+</IfModule>
+
+# ── Force UTF-8 Charset ──────────────────────────────────────
+<IfModule mod_mime.c>
+    AddCharset utf-8 .css .js .svg
+</IfModule>
+
+# ── Browser Caching ──────────────────────────────────────────
+
+
+# ── Cache-Control Headers ────────────────────────────────────
+<IfModule mod_headers.c>
+    # Unset deprecated security and caching headers
+    Header always unset Expires
+    Header always unset X-XSS-Protection
+    Header always unset X-Frame-Options
+
+    # Vite-hashed assets: immutable = browser never re-validates
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # Images/fonts: long cache
+    <FilesMatch "\.(ico|jpg|jpeg|png|gif|webp|avif|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "public, max-age=15552000"
+    </FilesMatch>
+
+    # HTML: no-cache
+    <FilesMatch "\.(html|php)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+
+    # Security headers are managed dynamically by Laravel middleware (SecurityHeaders.php) to support local dev HMR.
+
+    # Keep-Alive for reducing connection overhead
+    Header set Connection keep-alive
+</IfModule>
+
+# ── ETag (use Last-Modified instead — lighter) ───────────────
+FileETag None
+<IfModule mod_headers.c>
+    Header unset ETag
+</IfModule>

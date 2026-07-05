@@ -1,0 +1,684 @@
+@import 'tailwindcss';
+
+@custom-variant light (&:is(.light *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* ─── Atomni Design System ─── */
+@theme {
+    /* Typography */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: 'DM Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* Navy Palette */
+    --color-navy-950: #0A0E27;
+    --color-navy-900: #0F1535;
+    --color-navy-800: #162040;
+    --color-navy-700: #1E2D55;
+    --color-navy-600: #2A3D6B;
+
+    /* Accent Colors */
+    --color-electric: #2D7FF9;
+    --color-electric-light: #5B9DFF;
+    --color-electric-dark: #1A5FD1;
+    --color-cyan-glow: #00D4FF;
+
+    /* Brand Palette (Atomni Official) */
+    --color-brand-primary: #0272B8;
+    --color-brand-secondary: #00B8F7;
+    --color-brand-accent: #63CDEE;
+    --color-brand-deep: #002D3F;
+
+    /* Semantic Colors */
+    --color-alert-red: #FF3B5C;
+    --color-amber: #FFB020;
+    --color-success: #10B981;
+
+    /* Theme-specific Overrides (Defaults to Electric Blue) */
+    --color-accent-blue: var(--color-electric);
+    --color-accent-blue-hover: var(--color-electric-dark);
+
+    /* Text Colors */
+    --color-text-primary: #FFFFFF; /* High contrast white */
+    --color-text-secondary: #E2E8F0; /* Slate 200 */
+    --color-text-muted: #CBD5E1; /* Slate 300 for WCAG AA compliance against navy-800 */
+}
+
+/* ─── Theme Overrides ─── */
+:root:has(.theme-brand), .theme-brand {
+    --color-accent-blue: var(--color-brand-primary);
+    --color-accent-blue-hover: var(--color-brand-secondary);
+    --color-electric: var(--color-brand-primary);
+    --color-electric-light: var(--color-brand-accent);
+    --color-electric-dark: var(--color-brand-secondary);
+    --color-cyan-glow: var(--color-brand-accent);
+}
+
+:root:has(.theme-purple), .theme-purple {
+    --color-accent-blue: #A855F7;
+    --color-accent-blue-hover: #9333EA;
+    --color-electric: #A855F7;
+    --color-electric-light: #C084FC;
+    --color-electric-dark: #9333EA;
+    --color-cyan-glow: #C084FC;
+}
+
+:root:has(.theme-emerald), .theme-emerald {
+    --color-accent-blue: #10B981;
+    --color-accent-blue-hover: #059669;
+    --color-electric: #10B981;
+    --color-electric-light: #34D399;
+    --color-electric-dark: #059669;
+    --color-cyan-glow: #34D399;
+}
+
+:root:has(.theme-rose), .theme-rose {
+    --color-accent-blue: #F43F5E;
+    --color-accent-blue-hover: #E11D48;
+    --color-electric: #F43F5E;
+    --color-electric-light: #FB7185;
+    --color-electric-dark: #E11D48;
+    --color-cyan-glow: #FB7185;
+}
+
+:root:has(.theme-amber), .theme-amber {
+    --color-accent-blue: #F59E0B;
+    --color-accent-blue-hover: #D97706;
+    --color-electric: #F59E0B;
+    --color-electric-light: #FBBF24;
+    --color-electric-dark: #D97706;
+    --color-cyan-glow: #FBBF24;
+}
+
+:root:has(.theme-sunset), .theme-sunset {
+    --color-accent-blue: #F97316;
+    --color-accent-blue-hover: #EA580C;
+    --color-electric: #F97316;
+    --color-electric-light: #FB923C;
+    --color-electric-dark: #EA580C;
+    --color-cyan-glow: #FB923C;
+}
+
+:root:has(.theme-cyberpunk), .theme-cyberpunk {
+    --color-accent-blue: #FF007F;
+    --color-accent-blue-hover: #D8006C;
+    --color-electric: #FF007F;
+    --color-electric-light: #FF5EAF;
+    --color-electric-dark: #D8006C;
+    --color-cyan-glow: #00F3FF;
+}
+
+:root:has(.theme-sakura), .theme-sakura {
+    --color-accent-blue: #EC4899;
+    --color-accent-blue-hover: #DB2777;
+    --color-electric: #EC4899;
+    --color-electric-light: #F472B6;
+    --color-electric-dark: #DB2777;
+    --color-cyan-glow: #F472B6;
+}
+
+:root:has(.theme-midnight), .theme-midnight {
+    --color-accent-blue: #64748B;
+    --color-accent-blue-hover: #475569;
+    --color-electric: #64748B;
+    --color-electric-light: #94A3B8;
+    --color-electric-dark: #475569;
+    --color-cyan-glow: #94A3B8;
+}
+
+:root:has(.theme-forest), .theme-forest {
+    --color-accent-blue: #059669;
+    --color-accent-blue-hover: #047857;
+    --color-electric: #059669;
+    --color-electric-light: #34D399;
+    --color-electric-dark: #047857;
+    --color-cyan-glow: #34D399;
+}
+
+:root:has(.theme-lavender), .theme-lavender {
+    --color-accent-blue: #8B5CF6;
+    --color-accent-blue-hover: #7C3AED;
+    --color-electric: #8B5CF6;
+    --color-electric-light: #A78BFA;
+    --color-electric-dark: #7C3AED;
+    --color-cyan-glow: #A78BFA;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   When html.light is set, swap all dark tokens to light ones.
+   ═══════════════════════════════════════════════════════════ */
+html.light {
+    --color-navy-950: #FBFDFF; /* Pure, slightly blue-tinted white for background */
+    --color-navy-900: #F1F5F9; /* Slate 100 */
+    --color-navy-800: #E2E8F0; /* Slate 200 */
+    --color-navy-700: #CBD5E1; /* Slate 300 */
+    --color-navy-600: #94A3B8; /* Slate 400 */
+
+    --color-text-primary: #0F172A;   /* Slate 900 */
+    --color-text-secondary: #334155; /* Slate 700 */
+    --color-text-muted: #64748B;    /* Slate 500 */
+    
+    color: #334155; /* Global fallback for light mode text */
+}
+
+/* Ensure headings are dark in light mode */
+html.light h1, html.light h2, html.light h3, html.light h4, html.light h5, html.light h6 {
+    color: #0F172A;
+}
+
+/* ─── Logo Visibility Toggles ─── */
+.logo-light { display: none !important; }
+.logo-dark  { display: block !important; }
+
+html.light .logo-light { display: block !important; }
+html.light .logo-dark  { display: none !important; }
+
+/* Smooth transition when toggling */
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* ─── Custom Utilities ─── */
+
+/* Glass card effect */
+.glass-card {
+    background: rgba(15, 21, 53, 0.7);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(30, 45, 85, 0.5);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    background: rgba(22, 32, 64, 0.85);
+    border-color: color-mix(in srgb, var(--color-electric) 30%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--color-electric) 12%, transparent);
+}
+
+/* Light mode glass card */
+html.light .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+html.light .glass-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: color-mix(in srgb, var(--color-electric) 20%, transparent);
+    box-shadow: 0 10px 25px -5px color-mix(in srgb, var(--color-electric) 10%, transparent), 0 8px 10px -6px color-mix(in srgb, var(--color-electric) 10%, transparent);
+    transform: translateY(-2px);
+}
+
+/* Theme-responsive radial glow utilities */
+.theme-radial-glow-15 {
+    background: radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--color-electric) 15%, transparent), transparent 60%);
+}
+.theme-radial-glow-tr {
+    background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--color-electric) 8%, transparent), transparent 50%);
+}
+html.light .theme-radial-glow-tr {
+    background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--color-electric) 5%, transparent), transparent 50%);
+}
+.theme-radial-glow-bl {
+    background: radial-gradient(ellipse at bottom left, color-mix(in srgb, var(--color-electric) 8%, transparent), transparent 50%);
+}
+html.light .theme-radial-glow-bl {
+    background: radial-gradient(ellipse at bottom left, color-mix(in srgb, var(--color-electric) 5%, transparent), transparent 50%);
+}
+
+/* Gradient overlays */
+.gradient-overlay {
+    position: relative;
+}
+
+.gradient-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(10, 14, 39, 0.95) 0%, rgba(10, 14, 39, 0.4) 50%, transparent 100%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+/* Breaking news ticker animation */
+@keyframes ticker-scroll {
+    0%   { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.ticker-animate {
+    animation: ticker-scroll 25s linear infinite;
+}
+
+/* Glow pulse for live badge */
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(255, 59, 92, 0.6); }
+    50%      { box-shadow: 0 0 20px rgba(255, 59, 92, 0.9); }
+}
+
+.badge-live {
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Smooth scroll for category pills */
+.scroll-hide::-webkit-scrollbar {
+    height: 4px;
+}
+.scroll-hide::-webkit-scrollbar-track {
+    background: transparent;
+}
+.scroll-hide::-webkit-scrollbar-thumb {
+    background-color: var(--color-navy-700);
+    border-radius: 4px;
+}
+html.light .scroll-hide::-webkit-scrollbar-thumb {
+    background-color: var(--color-navy-600);
+}
+.scroll-hide {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-navy-700) transparent;
+}
+html.light .scroll-hide {
+    scrollbar-color: var(--color-navy-600) transparent;
+}
+
+/* Number overlay for trending cards */
+.trending-number {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(180deg, rgba(45, 127, 249, 0.4) 0%, transparent 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Light mode trending number */
+html.light .trending-number {
+    background: linear-gradient(180deg, rgba(45, 127, 249, 0.25) 0%, transparent 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* ─── Reusable Components ─── */
+@layer components {
+    .btn-primary {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #ffffff;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 0.75rem;
+        background-color: var(--color-accent-blue);
+        box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--color-electric) 15%, transparent);
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    @media (min-width: 640px) {
+        .btn-primary {
+            width: auto;
+        }
+    }
+
+    .btn-primary:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--color-navy-950), 0 0 0 4px var(--color-accent-blue);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--color-accent-blue-hover);
+        transform: scale(1.02);
+        box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--color-electric) 25%, transparent);
+    }
+
+    .btn-primary:active {
+        transform: scale(0.98);
+        box-shadow: 0 5px 10px -3px color-mix(in srgb, var(--color-electric) 15%, transparent);
+    }
+
+    /* Light mode optimizations for button */
+    html.light .btn-primary {
+        box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--color-electric) 10%, transparent);
+    }
+
+
+    .btn-login-premium {
+        @apply w-full flex items-center justify-center gap-2 px-10 py-4 rounded-xl text-sm font-bold transition-all;
+        background-color: #FFFFFF;
+        color: #0A0E27;
+        box-shadow: 0 25px 50px -12px rgba(255, 255, 255, 0.25);
+        border: none;
+        cursor: pointer;
+    }
+
+    @media (min-width: 640px) {
+        .btn-login-premium {
+            width: auto;
+        }
+    }
+
+    .btn-login-premium:hover {
+        background-color: #F1F5F9;
+        transform: scale(1.02);
+        box-shadow: 0 30px 60px -12px rgba(255, 255, 255, 0.35);
+    }
+
+    .btn-login-premium:active {
+        transform: scale(0.98);
+    }
+
+    .btn-login-premium:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #0A0E27, 0 0 0 4px #FFFFFF, 0 0 0 6px var(--color-electric);
+    }
+
+    /* Light Mode Button Overrides */
+    html.light .btn-login-premium {
+        background-color: #0A0E27;
+        color: #FFFFFF;
+        box-shadow: 0 25px 50px -12px rgba(10, 14, 39, 0.25);
+    }
+
+    html.light .btn-login-premium:hover {
+        background-color: #1E293B;
+        box-shadow: 0 30px 60px -12px rgba(10, 14, 39, 0.35);
+    }
+
+    html.light .btn-login-premium:focus {
+        box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #0A0E27, 0 0 0 6px var(--color-electric);
+    }
+
+    /* Standard Form Inputs */
+    .form-input {
+        @apply w-full bg-navy-800/80 text-[13px] text-text-primary px-4 py-2 border border-navy-600 rounded focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric transition-colors;
+    }
+    
+    html.light .form-input {
+        @apply bg-white text-slate-800 border-slate-300;
+    }
+
+    /* Standard Badges */
+    .badge-primary {
+        @apply px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-electric text-white;
+    }
+    
+    .badge-outline {
+        @apply px-3 py-1.5 rounded-full text-xs font-medium border border-electric/30 text-electric bg-electric/10 hover:bg-electric hover:text-white transition-all;
+    }
+    
+    html.light .badge-outline {
+        @apply border-electric/50 text-electric bg-electric/5 hover:bg-electric hover:text-white;
+    }
+}
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            overflow-x: hidden !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        
+        /* Removed img, video, iframe, svg { max-width: 100%; height: auto; } as it breaks logo SVGs inside flex containers */
+        input, select, textarea { max-width: 100%; }
+
+        /* ── Sidebar: mobile-first (off-canvas) ── */
+        #sidebar-backdrop { display: none; }
+        #sidebar-backdrop.active { display: block; }
+
+        @media (min-width: 768px) {
+            #admin-sidebar { left: 0 !important; }
+        }
+
+        /* ── Page header — always wraps gracefully ── */
+        .page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── Responsive page titles (clamp = no overflow, no js) ── */
+        h1.page-title {
+            font-size: clamp(1.1rem, 3.5vw, 1.875rem) !important;
+            word-break: break-word;
+            line-height: 1.25;
+        }
+
+        /* ── Tables: horizontal scroll inside card wrapper ── */
+        .table-scroll-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+        /* Prevent table layout breaking on small screens */
+        .table-scroll-container table { min-width: 500px; }
+
+        /* ── Filter / chip rows: scroll horizontally without scrollbar ── */
+        .chip-row {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            gap: 0.5rem;
+            padding-bottom: 2px;
+            -ms-overflow-style: none;
+        }
+        @supports (scrollbar-width: none) {
+            .chip-row { scrollbar-width: none; }
+        }
+        .chip-row::-webkit-scrollbar { display: none; }
+
+        /* ── Glass cards: no shrink below their content ── */
+        .glass-card { min-width: 0; }
+
+        /* ── Form controls: always full-width within their container ── */
+        .form-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .form-row > * { flex: 1 1 180px; min-width: 0; }
+
+        /* ── Responsive stats grid ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+        @media (min-width: 640px) {
+            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+
+        /* ── Modal: bottom-sheet on mobile, centered on tablet+ ── */
+        .admin-modal-body {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            overflow-y: auto;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 1rem;
+        }
+        @media (min-width: 640px) {
+            .admin-modal-body { align-items: center; }
+        }
+        .admin-modal-content {
+            width: 100%;
+            max-width: 28rem;
+            border-radius: 1.25rem 1.25rem 0 0;
+        }
+        @media (min-width: 640px) {
+            .admin-modal-content { border-radius: 1rem; }
+        }
+
+        /* ── Action button groups: shrink gracefully ── */
+        .action-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        /* ── Toolbar: filter area responsive ── */
+        .toolbar-filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .toolbar-filters {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 0.5rem;
+            }
+        }
+
+        /* ── Index page: FAB button (mobile only) ── */
+        .fab-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.25rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #fff;
+            background-color: var(--color-electric);
+            box-shadow: 0 8px 32px color-mix(in srgb, var(--color-electric) 40%, transparent);
+            transition: all 0.2s;
+        }
+        .fab-btn:active { transform: scale(0.95); }
+        @media (min-width: 768px) { .fab-btn { display: none; } }
+
+        /* ── Responsive two-column editor layout ── */
+        .editor-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+        }
+        @media (min-width: 1024px) {
+            .editor-layout {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .editor-layout > .editor-main {
+                flex: 1 1 0%;
+                min-width: 0;
+                overflow: hidden;
+            }
+            .editor-layout > .editor-sidebar {
+                width: 320px !important;
+                min-width: 320px !important;
+                max-width: 320px !important;
+                flex-shrink: 0 !important;
+                position: sticky;
+                top: 5rem;
+                max-height: calc(100vh - 6rem);
+                overflow-y: auto;
+            }
+            @supports (scrollbar-width: thin) {
+                .editor-layout > .editor-sidebar {
+                    scrollbar-width: thin;
+                    scrollbar-color: rgba(100,116,139,0.3) transparent;
+                }
+            }
+            .editor-layout > .editor-sidebar::-webkit-scrollbar {
+                width: 6px;
+            }
+            .editor-layout > .editor-sidebar::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .editor-layout > .editor-sidebar::-webkit-scrollbar-thumb {
+                background: rgba(100,116,139,0.3);
+                border-radius: 3px;
+            }
+        }
+
+        /* ── TinyMCE containment ── */
+        .tox-tinymce { max-width: 100% !important; }
+        .tox.tox-tinymce { width: 100% !important; }
+
+        /* ── Settings page: two-col form grid ── */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+        @media (min-width: 640px) {
+            .settings-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (min-width: 1024px) {
+            .settings-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        }
+
+        /* ── Media grid ── */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+        @media (min-width: 480px)  { .media-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (min-width: 768px)  { .media-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .media-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+        @media (min-width: 1280px) { .media-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+        /* ── Pill / badge wrapping ── */
+        .badge-row { display: flex; flex-wrap: wrap; gap: 0.375rem; align-items: center; }
+
+        /* ── Condensed padding on mobile ── */
+        @media (max-width: 380px) {
+            .px-5 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+            .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .py-5 { padding-top: 0.875rem !important; padding-bottom: 0.875rem !important; }
+        }
+
+        /* ── Card stat numbers: responsive font size ── */
+        .stat-number {
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        /* ── Responsive table: hide less-important columns progressively ── */
+        @media (max-width: 899px) { .col-hide-md { display: none !important; } }
+        @media (max-width: 1099px) { .col-hide-lg { display: none !important; } }
+
+        /* ── Scrollbar styling for sidebar ── */
+        #admin-sidebar nav::-webkit-scrollbar { width: 3px; }
+        #admin-sidebar nav::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.2); border-radius: 9px; }
+        #admin-sidebar nav::-webkit-scrollbar-track { background: transparent; }
+
+        /* ── Flash message full-width ── */
+        .flash-message { margin: 0 0 1rem 0; border-radius: 0.5rem; }
+
+        /* ── Tablet (768–1023px): content area adjustments ── */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .editor-layout { flex-direction: column; }
+            .editor-layout > .editor-sidebar { position: static; max-height: none; width: 100% !important; min-width: 100% !important; max-width: 100% !important; }
+        }
+    

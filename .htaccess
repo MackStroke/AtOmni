@@ -1,0 +1,28 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # 1. Block access to hidden files and directories (like .env, .git)
+    RewriteCond %{SCRIPT_FILENAME} -d [OR]
+    RewriteCond %{SCRIPT_FILENAME} -f
+    RewriteRule "(^|/)\." - [F]
+
+    # 2. Block direct access to specific sensitive files
+    <FilesMatch "^\.env|composer\.json|package\.json|phpunit\.xml">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+
+    # 3. Redirect explicit requests for /public/ to clean URL (only in production hosts, prevents crawl duplicate issues)
+    RewriteCond %{HTTP_HOST} !^localhost$ [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1$ [NC]
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /public/(.*)\ HTTP/ [NC]
+    RewriteRule ^public/(.*)$ /$1 [R=301,L]
+
+    # 4. Redirect all traffic to the public directory
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>

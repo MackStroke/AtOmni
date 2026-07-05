@@ -1,0 +1,4 @@
+Contact: mailto:info@atomni.in
+Expires: 2050-01-01T00:00:00.000Z
+Policy: https://www.atomni.in/privacy
+Canonical: https://www.atomni.in/.well-known/security.txt

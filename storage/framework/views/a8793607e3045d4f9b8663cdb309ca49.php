@@ -1,0 +1,162 @@
+
+<?php
+    use Illuminate\Support\Str;
+    $siteName = \App\Models\Setting::get('site_name', 'Atomni');
+    $logoLight = \App\Models\Setting::get('site_logo');
+    $logoDark = \App\Models\Setting::get('site_logo_dark');
+?>
+
+<header id="site-header" class="fixed inset-x-0 bg-navy-950/80 backdrop-blur-xl border-b border-navy-700/50 light:bg-white/80 light:border-slate-200" style="top:30px;z-index:50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+
+            
+            <a href="<?php echo e(url('/')); ?>" class="flex items-center gap-2 shrink-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-electric focus:ring-offset-4 focus:ring-offset-navy-950">
+                <?php if($logoLight && $logoDark): ?>
+                <img src="<?php echo e(asset('storage/' . $logoLight)); ?>" alt="<?php echo e($siteName); ?>" class="h-9 w-auto object-contain logo-light">
+                <img src="<?php echo e(asset('storage/' . $logoDark)); ?>" alt="<?php echo e($siteName); ?>" class="h-9 w-auto object-contain logo-dark">
+            <?php elseif($logoLight): ?>
+                <img src="<?php echo e(asset('storage/' . $logoLight)); ?>" alt="<?php echo e($siteName); ?>" class="h-9 w-auto object-contain">
+            <?php elseif($logoDark): ?>
+                <img src="<?php echo e(asset('storage/' . $logoDark)); ?>" alt="<?php echo e($siteName); ?>" class="h-9 w-auto object-contain">
+            <?php else: ?>
+                <img src="<?php echo e(asset('images/atomni-logo-light.svg')); ?>" alt="<?php echo e($siteName); ?>" class="h-9 w-auto object-contain logo-light">
+                <img src="<?php echo e(asset('images/atomni-logo-dark.svg')); ?>" alt="<?php echo e($siteName); ?>" class="h-9 w-auto object-contain logo-dark">
+            <?php endif; ?>
+            </a>
+
+            
+            <nav class="hidden xl:flex flex-1 items-center gap-1 mx-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                <a href="<?php echo e(url('/')); ?>"
+                   class="px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 <?php echo e(request()->is('/') ? 'text-electric bg-electric/10' : 'text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100'); ?>">
+                    Home
+                </a>
+                <?php if($headerMenu && $headerMenu->rootItems): ?>
+                    <?php $__currentLoopData = $headerMenu->rootItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $navItem): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <a href="<?php echo e(url($navItem->url)); ?>"
+                           class="px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 <?php echo e(request()->is(ltrim($navItem->url, '/') . '*') ? 'text-electric bg-electric/10' : 'text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100'); ?>">
+                            <?php echo e($navItem->title); ?>
+
+                        </a>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php endif; ?>
+            </nav>
+
+            
+            <div class="flex items-center gap-2 shrink-0">
+                
+                <div class="relative group hidden sm:block js-search-container">
+                    <form action="<?php echo e(route('search')); ?>" method="GET" class="relative flex items-center">
+                        <input type="text" name="q" placeholder="Search..." autocomplete="off" class="js-autocomplete-search w-8 focus:w-48 lg:focus:w-64 pl-9 pr-3 py-2 rounded-full bg-navy-800/40 border border-transparent focus:border-electric focus:bg-navy-900/60 light:bg-slate-100 light:focus:bg-white light:border-slate-200 text-sm text-text-primary placeholder:text-transparent focus:placeholder:text-text-muted transition-all duration-300 ease-out outline-none cursor-pointer focus:cursor-text">
+                        <button type="submit" class="absolute left-0 top-0 bottom-0 px-2.5 text-text-secondary hover:text-text-primary transition-colors pointer-events-auto" aria-label="Search">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </button>
+                    </form>
+                    
+                    <div class="js-search-dropdown absolute top-full right-0 mt-2 w-72 bg-navy-900 light:bg-white border border-navy-700 light:border-slate-200 rounded-xl shadow-xl overflow-hidden z-50 hidden opacity-0 transition-opacity duration-200">
+                        <ul class="js-search-results divide-y divide-navy-800 light:divide-slate-100"></ul>
+                        <div class="js-search-loading hidden p-4 text-center text-sm text-text-muted">
+                            <svg class="animate-spin h-5 w-5 mx-auto text-electric" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="<?php echo e(url('search')); ?>" class="p-2 sm:hidden rounded-lg text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100 transition-colors" aria-label="Search">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </a>
+                
+                <button id="theme-toggle" class="relative p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100 transition-colors" aria-label="Toggle theme">
+                    <svg id="theme-icon-moon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                </button>
+                
+                <a href="#newsletter" class="sm:hidden p-2 rounded-lg text-electric hover:bg-navy-800/60 light:hover:bg-slate-100 transition-colors" aria-label="Subscribe">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </a>
+                <a href="#newsletter" class="hidden sm:inline-flex items-center px-4 py-2 rounded-lg bg-electric hover:bg-electric-light text-white text-sm font-semibold transition-all shadow-lg shadow-electric/20 hover:shadow-electric/40">
+                    Subscribe
+                </a>
+                
+                <a href="<?php echo e(route('explore')); ?>" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100 transition-colors text-sm font-medium" aria-label="Explore Topics">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    Explore
+                </a>
+                
+                <button id="mobile-menu-toggle" aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="Open mobile menu" class="xl:hidden p-3 -m-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-electric">
+                    <svg id="mega-icon-bars" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+<div id="mobile-nav-panel" class="xl:hidden fixed inset-0 bg-navy-950/98 light:bg-white/98 backdrop-blur-xl transform translate-x-full transition-transform duration-300 ease-out pointer-events-none" style="z-index:60">
+    <div class="flex flex-col h-full">
+        <div class="flex items-center justify-between px-4 h-16 border-b border-navy-700/50 light:border-slate-200">
+            <span class="text-lg font-bold text-text-primary">Menu</span>
+            <button onclick="closeMobileNav()" class="p-2 text-text-secondary hover:text-text-primary rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+            <a href="<?php echo e(url('/')); ?>" class="block px-3 py-2.5 rounded-lg text-sm font-medium <?php echo e(request()->is('/') ? 'text-electric bg-electric/10' : 'text-text-secondary hover:text-text-primary hover:bg-navy-800/60'); ?>">Home</a>
+            <?php if($headerMenu): ?>
+                <?php $__currentLoopData = $headerMenu->rootItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $navItem): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <a href="<?php echo e(url($navItem->url)); ?>" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-navy-800/60"><?php echo e($navItem->title); ?></a>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            <?php endif; ?>
+            <div class="pt-4 mt-4 border-t border-navy-700/30 light:border-slate-200">
+                <a href="<?php echo e(route('explore')); ?>" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-navy-800/60 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    Explore All Topics
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const btn = document.getElementById('mobile-menu-toggle');
+    const mobilePanel = document.getElementById('mobile-nav-panel');
+
+    if(btn) {
+        btn.addEventListener('click', function() {
+            mobilePanel.classList.remove('translate-x-full', 'pointer-events-none');
+            mobilePanel.classList.add('translate-x-0', 'pointer-events-auto');
+            document.body.style.overflow = 'hidden';
+            btn.setAttribute('aria-expanded', 'true');
+        });
+    }
+
+    window.closeMobileNav = function() {
+        if(mobilePanel) {
+            mobilePanel.classList.add('translate-x-full', 'pointer-events-none');
+            mobilePanel.classList.remove('translate-x-0', 'pointer-events-auto');
+        }
+        document.body.style.overflow = '';
+        if(btn) btn.setAttribute('aria-expanded', 'false');
+    };
+
+    // Auto-close mobile nav when a link is clicked
+    if(mobilePanel) {
+        mobilePanel.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                window.closeMobileNav();
+            });
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if(e.key === 'Escape') {
+            window.closeMobileNav();
+        }
+    });
+})();
+</script>
+<?php /**PATH D:\xampp\htdocs\atomni-pro\resources\views/partials/header.blade.php ENDPATH**/ ?>

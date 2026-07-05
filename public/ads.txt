@@ -1,0 +1,11 @@
+# ads.txt — Authorized Digital Sellers
+# https://iabtechlab.com/ads-txt/
+#
+# Add your authorized seller lines below when you have ad network accounts.
+# Format: <ad_system_domain>, <seller_account_id>, <relationship>, [cert_authority_id]
+#
+# Example for Google AdSense (replace pub-XXXXXXXXXXXXXXXX with your ID):
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+#
+# This file must be at https://www.atomni.in/ads.txt
+# Submit to Google Ad Manager → Admin → Network Settings → ads.txt
