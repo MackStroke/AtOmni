@@ -1,5 +1,5 @@
 {{-- Admin Sidebar --}}
-<aside id="admin-sidebar" class="fixed inset-y-0 z-40 w-64 bg-navy-900 border-r border-navy-700/50" style="left: -16rem; transition: left 0.3s ease;">
+<aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-navy-900 border-r border-navy-700/50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <div class="flex flex-col h-full">
         {{-- Logo --}}
         <div class="flex items-center gap-2 px-6 h-16 border-b border-navy-700/50 shrink-0">

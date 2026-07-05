@@ -442,10 +442,6 @@ html.light .trending-number {
         #sidebar-backdrop { display: none; }
         #sidebar-backdrop.active { display: block; }
 
-        @media (min-width: 768px) {
-            #admin-sidebar { left: 0 !important; }
-        }
-
         /* ── Page header — always wraps gracefully ── */
         .page-header {
             display: flex;

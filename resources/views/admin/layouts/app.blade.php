@@ -192,18 +192,24 @@
         var backdrop = document.getElementById('sidebar-backdrop');
 
         function openSidebar() {
-            if (sidebar) sidebar.style.left = '0';
+            if (sidebar) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('translate-x-0');
+            }
             backdrop?.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
         function closeSidebar() {
-            if (sidebar) sidebar.style.left = '-16rem';
+            if (sidebar) {
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('-translate-x-full');
+            }
             backdrop?.classList.remove('active');
             document.body.style.overflow = '';
         }
 
         document.getElementById('admin-sidebar-toggle')?.addEventListener('click', function() {
-            var isOpen = sidebar && sidebar.style.left === '0px' || sidebar.style.left === '0';
+            var isOpen = sidebar && sidebar.classList.contains('translate-x-0');
             isOpen ? closeSidebar() : openSidebar();
         });
 
