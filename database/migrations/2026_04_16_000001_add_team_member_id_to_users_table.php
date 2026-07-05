@@ -8,13 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('team_member_id')
-                  ->nullable()
-                  ->after('profile_image')
-                  ->constrained('team_members')
-                  ->nullOnDelete();
-        });
+        if (!Schema::hasColumn('users', 'team_member_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->foreignId('team_member_id')
+                      ->nullable()
+                      ->after('profile_image')
+                      ->constrained('team_members')
+                      ->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void

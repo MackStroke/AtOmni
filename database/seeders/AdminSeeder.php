@@ -17,7 +17,7 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         // ── Admin User ───────────────────────────────────
-        $admin = User::updateOrCreate(
+        $admin = User::withTrashed()->updateOrCreate(
             ['email' => 'admin@atomni.com'],
             [
                 'name' => 'Admin',
@@ -74,7 +74,7 @@ class AdminSeeder extends Seeder
             $cat = $categories->firstWhere('slug', $p['category']);
             $content = "<p>This is sample content for the article \"{$p['title']}\". In a production environment, this would contain the full article body with rich formatting, images, and embedded media.</p><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>";
 
-            $post = Post::updateOrCreate(
+            $post = Post::withTrashed()->updateOrCreate(
                 ['slug' => Str::slug($p['title'])],
                 [
                     'author_id' => $admin->id,
