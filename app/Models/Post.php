@@ -100,6 +100,17 @@ class Post extends Model
         return $this->hasMany(PostView::class);
     }
 
+    // ── Accessors ─────────────────────────────────────────
+
+    /**
+     * Get the excerpt cleaned of internal tags like [RSS: ...].
+     */
+    public function getCleanExcerptAttribute(): string
+    {
+        if (empty($this->excerpt)) return '';
+        return trim(preg_replace('/\[RSS:[^\]]+\]/i', '', $this->excerpt));
+    }
+
     // ── Scopes ────────────────────────────────────────────
 
     public function scopePublished($query)

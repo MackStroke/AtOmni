@@ -101,6 +101,7 @@ class SettingController extends Controller
                 'donate_note' => 'nullable|string|max:1000',
                 'home_author_section_title' => 'nullable|string|max:255',
                 'home_author_section_author_id' => 'nullable|integer',
+                'google_site_verification' => 'nullable|string|max:255',
             ]);
 
             Setting::set('ticker_enabled', $request->has('ticker_enabled') ? '1' : '0');
@@ -115,6 +116,7 @@ class SettingController extends Controller
             Setting::set('donate_qr_link', $request->input('donate_qr_link', ''));
             Setting::set('donate_note', $request->input('donate_note', ''));
             Setting::set('donation_link', $request->input('donation_link', ''));
+            Setting::set('google_site_verification', $request->input('google_site_verification', ''));
             
             Setting::set('home_author_section_enabled', $request->has('home_author_section_enabled') ? '1' : '0');
             Setting::set('home_author_section_title', $request->input('home_author_section_title', 'Selected Author'));

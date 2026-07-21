@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class BulkActionController extends Controller
 {
@@ -159,6 +160,43 @@ class BulkActionController extends Controller
                         throw new \Exception("Auto-fill is not supported for resource '{$resource}'.");
                     }
                     break;
+
+                case 'download':
+                    if ($resource !== 'media') {
+                        throw new \Exception("Bulk download is only available for media.");
+                    }
+                    
+                    $items = $modelClass::whereIn('id', $ids)->get();
+                    if ($items->isEmpty()) {
+                        return back()->with('error', 'No media items selected.');
+                    }
+                    
+                    $zipFileName = 'media-download-' . time() . '.zip';
+                    $zipPath = storage_path('app/public/' . $zipFileName);
+                    
+                    $stream = fopen($zipPath, 'wb');
+                    if (!$stream) {
+                        throw new \Exception("Could not open zip output stream.");
+                    }
+                    
+                    $options = new \ZipStream\Option\Archive();
+                    $options->setOutputStream($stream);
+                    
+                    $zip = new \ZipStream\ZipStream(null, $options);
+                    
+                    foreach ($items as $item) {
+                        $filePath = $item->file_path;
+                        if (Storage::disk('public')->exists($filePath)) {
+                            $fileData = Storage::disk('public')->get($filePath);
+                            $zip->addFile($item->file_name, $fileData);
+                        }
+                    }
+                    
+                    $zip->finish();
+                    fclose($stream);
+                    
+                    DB::commit();
+                    return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
 
                 default:
                     DB::rollBack();

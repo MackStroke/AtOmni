@@ -443,6 +443,7 @@ class FrontendController extends Controller
             return view('sitemap', compact('posts', 'categories', 'pages', 'jobs'))->render();
         });
 
-        return response($content, 200)->header('Content-Type', 'application/xml');
+        if (ob_get_length()) ob_clean();
+        return response($content, 200)->header('Content-Type', 'text/xml; charset=utf-8');
     }
 }

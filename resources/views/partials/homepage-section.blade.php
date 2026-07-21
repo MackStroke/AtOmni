@@ -28,7 +28,7 @@
                             <span class="inline-block px-3 py-1 bg-electric/90 text-white text-xs font-bold uppercase tracking-wider rounded-lg mb-3">{{ $featured->category->name }}</span>
                             @endif
                             <h3 class="font-heading font-bold text-2xl sm:text-3xl text-white mb-2 leading-tight group-hover:text-electric-light transition-colors">{{ $featured->title }}</h3>
-                            <p class="text-text-muted text-sm line-clamp-2 mb-3">{{ $featured->excerpt }}</p>
+                            <p class="text-text-muted text-sm line-clamp-2 mb-3">{{ $featured->clean_excerpt }}</p>
                             <div class="flex items-center gap-3 text-xs text-text-muted">
                                 <span>{{ $featured->author?->name ?? 'Staff' }}</span>
                                 <span>A</span>
@@ -189,7 +189,7 @@
                         </div>
                         <div class="p-5 flex flex-col flex-1">
                             <h3 class="font-heading font-semibold text-text-primary text-lg leading-snug group-hover:text-electric-light transition-colors line-clamp-2 mb-2">{{ $post->title }}</h3>
-                            <p class="text-text-secondary text-sm line-clamp-2 mb-4">{{ $post->excerpt }}</p>
+                            <p class="text-text-secondary text-sm line-clamp-2 mb-4">{{ $post->clean_excerpt }}</p>
                             <div class="mt-auto flex items-center justify-between text-xs text-text-muted">
                                 <span>{{ $post->author?->name ?? 'Staff Writer' }}</span>
                                 <span>{{ $post->published_at?->diffForHumans() }}</span>

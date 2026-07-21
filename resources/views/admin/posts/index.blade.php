@@ -67,7 +67,7 @@
         {{-- Filters Row: Horizontally scrollable on mobile --}}
         <div class="flex overflow-x-auto scroll-hide items-center gap-2 w-full pb-1">
             {{-- Bulk Actions --}}
-            <x-admin.bulk-actions resource="posts" :actions="['delete' => 'Delete', 'draft' => 'Draft', 'publish' => 'Publish', 'auto_taxonomy' => 'Auto-fill Taxonomy']" class="px-2 py-1.5 bg-navy-900/50 border border-navy-700/50 rounded-xl gap-2 h-[44px] shrink-0" :show-banner="false" />
+            <x-admin.bulk-actions resource="posts" :actions="['auto_taxonomy' => 'Auto-fill Taxonomy', 'delete' => 'Delete', 'draft' => 'Draft', 'publish' => 'Publish']" class="px-2 py-1.5 bg-navy-900/50 border border-navy-700/50 rounded-xl gap-2 h-[44px] shrink-0" :show-banner="false" />
             <div class="flex items-center gap-2 shrink-0 glass-card px-2 py-1.5 rounded-xl border border-navy-700/50">
                 <svg class="w-4 h-4 text-text-muted ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                 
@@ -81,11 +81,23 @@
                 
                 <div class="w-px h-5 bg-navy-700/50"></div>
                 
-                <select name="category_id" aria-label="Filter by category" onchange="document.getElementById('filter-form').submit()"
-                        class="w-32 px-3 py-1.5 rounded-lg bg-navy-900/50 border-none text-xs font-medium text-text-secondary focus:ring-1 focus:ring-electric cursor-pointer hover:bg-navy-800 transition-colors">
+                <select name="category_id" id="category-filter" aria-label="Filter by category" onchange="document.getElementById('filter-form').submit()"
+                        class="w-32 px-3 py-1.5 rounded-lg bg-navy-900/50 border-none text-xs font-medium text-text-secondary focus:ring-1 focus:ring-electric cursor-pointer hover:bg-navy-800 transition-colors" placeholder="All Categories">
                     <option value="">All Categories</option>
                     @foreach($categories as $cat)
                         <option value="{{ $cat->id }}" {{ request('category_id')==$cat->id?'selected':'' }}>{{ $cat->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0 glass-card px-2 py-1.5 rounded-xl border border-navy-700/50">
+                <svg class="w-4 h-4 text-text-muted ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                
+                <select name="tags[]" id="tag-filter" multiple aria-label="Filter by tag" onchange="document.getElementById('filter-form').submit()"
+                        class="w-48 px-3 py-1.5 rounded-lg bg-navy-900/50 border-none text-xs font-medium text-text-secondary focus:ring-1 focus:ring-electric cursor-pointer hover:bg-navy-800 transition-colors" placeholder="All Tags">
+                    <option value="">All Tags</option>
+                    @foreach($tags as $tag)
+                        <option value="{{ $tag->id }}" {{ in_array($tag->id, (array)request('tags', [])) ? 'selected' : '' }}>{{ $tag->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -469,7 +481,37 @@
 @endsection
 
 @section('scripts')
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize TomSelect for categories
+        new TomSelect('#category-filter', {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: 'All Categories',
+            controlInput: '<input>',
+            dropdownParent: 'body'
+        });
+
+        // Initialize TomSelect for tags (multiple)
+        new TomSelect('#tag-filter', {
+            plugins: ['remove_button'],
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: 'All Tags',
+            controlInput: '<input>',
+            dropdownParent: 'body',
+            onChange: function() {
+                // Because we intercept onchange for form submission, we trigger it manually
+                document.getElementById('filter-form').submit();
+            }
+        });
+        
+        // Remove the inline onchange from the tag-filter to avoid double triggering, we handle it in TomSelect onChange
+        document.getElementById('tag-filter').removeAttribute('onchange');
+    });
+
     function toggleCustomDateRange(select) {
         if (select.value === 'custom') {
             document.getElementById('custom-date-inputs').classList.remove('hidden');
@@ -512,7 +554,8 @@
             finalIds = window.bulkSelectContext.allIds;
         } else {
             const checkedBoxes = document.querySelectorAll('.bulk-item-checkbox:checked');
-            checkedBoxes.forEach(cb => finalIds.push(cb.value));
+            const uniqueSet = new Set(Array.from(checkedBoxes).map(cb => cb.value));
+            finalIds = Array.from(uniqueSet);
         }
 
         if (finalIds.length === 0) {

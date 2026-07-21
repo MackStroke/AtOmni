@@ -29,9 +29,9 @@
                 <select name="layout_type" id="layout_type" required class="w-full px-4 py-2.5 bg-navy-900 border border-navy-700 rounded-xl text-text-primary focus:ring-2 focus:ring-electric focus:border-transparent transition-all">
                     <option value="">Select a layout...</option>
                     <option value="3d_carousel" {{ old('layout_type') == '3d_carousel' ? 'selected' : '' }}>3D Movie Carousel</option>
-                    <option value="tech_complex_grid" {{ old('layout_type') == 'tech_complex_grid' ? 'selected' : '' }}>Technology Complex Grid</option>
                     <option value="horizontal_scroll" {{ old('layout_type') == 'horizontal_scroll' ? 'selected' : '' }}>Horizontal Scroll</option>
                     <option value="standard_grid" {{ old('layout_type') == 'standard_grid' ? 'selected' : '' }}>Standard Grid (3 Columns)</option>
+                    <option value="tech_complex_grid" {{ old('layout_type') == 'tech_complex_grid' ? 'selected' : '' }}>Technology Complex Grid</option>
                 </select>
                 @error('layout_type')<p class="mt-1 text-xs text-alert-red">{{ $message }}</p>@enderror
             </div>

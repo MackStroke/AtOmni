@@ -9,15 +9,18 @@
     $cleanUrl = request()->url(); // path only, no query string
     $canonicalUrl = View::hasSection('canonical')
         ? View::yieldContent('canonical')
-        : $cleanUrl;
+        : (request()->has('page') ? $cleanUrl . '?page=' . request()->query('page') : $cleanUrl);
 @endphp
 <html lang="en" class="scroll-smooth theme-{{ $theme_color }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="@yield('meta-description', 'Atomni — AI workflow automation and business process solutions for service businesses, agencies, and operators.')">
+    <meta name="description" content="@yield('meta-description', 'Atomni — Your premier source for breaking news, in-depth analysis, and trending stories in tech and business.')">
     <meta name="robots" content="@yield('robots', 'index,follow')">
-    <meta name="google-site-verification" content="ADD_YOUR_VERIFICATION_CODE_HERE" />
+    @php $gsv = \App\Models\Setting::get('google_site_verification', ''); @endphp
+    @if($gsv)
+    <meta name="google-site-verification" content="{{ $gsv }}">
+    @endif
 
     {{-- Canonical URL (always clean — no UTM/fbclid/gclid tracking params) --}}
     <link rel="canonical" href="{{ $canonicalUrl }}">
@@ -38,7 +41,7 @@
 
     {{-- Twitter / X Card --}}
     <meta name="twitter:card" content="@yield('twitter-card', 'summary_large_image')">
-    <meta name="twitter:site" content="@{{ trim(basename(\App\Models\Setting::get('social_twitter', '')), '/') ?: 'atomni' }}">
+    <meta name="twitter:site" content="{{ '@' . ltrim(basename(\App\Models\Setting::get('social_twitter', 'atomni')), '/@') }}">
     <meta name="twitter:title" content="@yield('title', '{{ $siteName }} — News & Insights')">
     <meta name="twitter:description" content="@yield('meta-description', 'Atomni — Your premier source for breaking news, in-depth analysis, and trending stories.')">
     @if(View::hasSection('og-image'))
@@ -284,7 +287,7 @@
             "width": 512,
             "height": 512
         },
-        "description": "Atomni provides AI workflow automation and business process solutions for service businesses, agencies, and operators.",
+        "description": "Atomni — Your premier source for breaking news, in-depth analysis, and trending stories.",
         "foundingDate": "2024",
         "sameAs": [
             "https://twitter.com/atomni",

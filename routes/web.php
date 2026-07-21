@@ -255,6 +255,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('cache',                      [ToolsController::class, 'cacheManager'])->name('cache');
         Route::post('cache/clear',               [ToolsController::class, 'clearCache'])->name('cache.clear');
         Route::post('rss-import',                [ToolsController::class, 'runRssImport'])->name('rss-import');
+        
+        // AI News Agent
+        Route::get('news-agent',                 [ToolsController::class, 'newsAgent'])->name('news-agent');
+        Route::post('news-agent/run',            [ToolsController::class, 'runNewsAgent'])->name('news-agent.run');
+        Route::post('news-agent/settings',       [ToolsController::class, 'saveNewsAgentSettings'])->name('news-agent.settings');
+        Route::get('news-agent/logs',            [ToolsController::class, 'getNewsAgentLogs'])->name('news-agent.logs');
     });
 
     // Profile — always accessible by the logged-in user

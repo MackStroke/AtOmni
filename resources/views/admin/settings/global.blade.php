@@ -81,6 +81,16 @@
                             <p class="mt-2 text-sm text-rose-400 font-medium">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <!-- Google Site Verification -->
+                    <div class="space-y-2">
+                        <label for="google_site_verification" class="block text-sm font-bold text-text-secondary">Google Site Verification Code</label>
+                        <input type="text" name="google_site_verification" id="google_site_verification" value="{{ old('google_site_verification', $settings['google_site_verification'] ?? '') }}" class="block w-full px-4 py-3 rounded-xl bg-navy-950/40 border border-navy-700/20 text-text-primary placeholder-text-muted focus:ring-2 focus:ring-accent-blue focus:border-transparent transition-all font-medium" placeholder="E.g., XXXXXXXXXXXXXXXXXXXXXXXX">
+                        <p class="text-[11px] text-text-muted mt-2 leading-relaxed">Leave blank if you use DNS verification or upload the HTML file.</p>
+                        @error('google_site_verification')
+                            <p class="mt-2 text-sm text-rose-400 font-medium">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Branding Logos Card -->

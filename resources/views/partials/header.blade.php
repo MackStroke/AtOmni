@@ -29,17 +29,86 @@
             </a>
 
             {{-- Nav Links (desktop) — Dynamic from DB --}}
-            <nav class="hidden xl:flex flex-1 items-center gap-1 mx-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+            <nav class="hidden xl:flex flex-1 items-center gap-1 mx-4 whitespace-nowrap">
                 <a href="{{ url('/') }}"
                    class="px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 {{ request()->is('/') ? 'text-electric bg-electric/10' : 'text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100' }}">
                     Home
                 </a>
                 @if($headerMenu && $headerMenu->rootItems)
                     @foreach($headerMenu->rootItems as $navItem)
-                        <a href="{{ url($navItem->url) }}"
-                           class="px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 {{ request()->is(ltrim($navItem->url, '/') . '*') ? 'text-electric bg-electric/10' : 'text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100' }}">
-                            {{ $navItem->title }}
-                        </a>
+                        @php
+                            $slug = null;
+                            $urlPath = trim($navItem->url, '/');
+                            if (Str::startsWith($urlPath, 'category/')) {
+                                $slug = Str::after($urlPath, 'category/');
+                            }
+                            $categoryData = $slug ? ($categoriesWithSubs[$slug] ?? null) : null;
+                        @endphp
+                        
+                        @if($categoryData)
+                            {{-- Dropdown / Megamenu Group --}}
+                            <div class="relative group shrink-0">
+                                <a href="{{ url($navItem->url) }}"
+                                   class="px-3 py-2 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-1 {{ request()->is(ltrim($navItem->url, '/') . '*') ? 'text-electric bg-electric/10' : 'text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100' }}">
+                                    {{ $navItem->title }}
+                                    <svg class="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </a>
+                                
+                                {{-- Megamenu Panel --}}
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[720px] bg-navy-950/95 border border-navy-700/80 rounded-2xl shadow-2xl p-6 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50 backdrop-blur-xl grid grid-cols-12 gap-6 light:bg-white/95 light:border-slate-200">
+                                    {{-- Left Column: Subcategories list --}}
+                                    <div class="col-span-4 border-r border-navy-800/50 light:border-slate-100 pr-6 text-left">
+                                        <h4 class="text-xs font-bold text-text-muted uppercase tracking-wider mb-4">Sub Categories</h4>
+                                        <div class="space-y-1">
+                                            @foreach($categoryData->children as $subCat)
+                                                <a href="{{ route('category', $subCat->slug) }}" class="px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-electric hover:bg-electric/5 transition-all flex items-center justify-between">
+                                                    <span>{{ $subCat->name }}</span>
+                                                    <span class="text-xs text-text-muted bg-navy-800/40 px-2 py-0.5 rounded-full light:bg-slate-100">{{ $subCat->posts_count }}</span>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                    
+                                    {{-- Right Column: Featured/Latest posts --}}
+                                    <div class="col-span-8 text-left">
+                                        <h4 class="text-xs font-bold text-text-muted uppercase tracking-wider mb-4">Latest in {{ $categoryData->name }}</h4>
+                                        @if($categoryData->latest_posts->isNotEmpty())
+                                            <div class="grid grid-cols-3 gap-4">
+                                                @foreach($categoryData->latest_posts as $p)
+                                                    <a href="{{ url($p->slug) }}" class="group/post block space-y-2">
+                                                        <div class="aspect-video w-full rounded-lg overflow-hidden bg-navy-800 light:bg-slate-100 relative">
+                                                            @if($p->featured_image)
+                                                                <img src="{{ asset('storage/' . $p->featured_image) }}" alt="{{ $p->title }}" class="w-full h-full object-cover transition-transform group-hover/post:scale-105 duration-300">
+                                                            @else
+                                                                <div class="w-full h-full flex items-center justify-center text-text-muted">
+                                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                        <h5 class="text-xs font-bold text-text-primary line-clamp-2 hover:text-electric transition-colors whitespace-normal">
+                                                            {{ $p->title }}
+                                                        </h5>
+                                                        <span class="text-[10px] text-text-muted block">
+                                                            {{ $p->published_at ? $p->published_at->format('M d, Y') : '' }}
+                                                        </span>
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <div class="h-32 flex items-center justify-center text-sm text-text-muted">
+                                                No recent posts.
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            {{-- Standard Nav Item --}}
+                            <a href="{{ url($navItem->url) }}"
+                               class="px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 {{ request()->is(ltrim($navItem->url, '/') . '*') ? 'text-electric bg-electric/10' : 'text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100' }}">
+                                {{ $navItem->title }}
+                            </a>
+                        @endif
                     @endforeach
                 @endif
             </nav>
@@ -107,9 +176,38 @@
         </div>
         <div class="flex-1 overflow-y-auto px-4 py-4 space-y-1">
             <a href="{{ url('/') }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->is('/') ? 'text-electric bg-electric/10' : 'text-text-secondary hover:text-text-primary hover:bg-navy-800/60' }}">Home</a>
-            @if($headerMenu)
+            @if($headerMenu && $headerMenu->rootItems)
                 @foreach($headerMenu->rootItems as $navItem)
-                    <a href="{{ url($navItem->url) }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-navy-800/60">{{ $navItem->title }}</a>
+                    @php
+                        $slug = null;
+                        $urlPath = trim($navItem->url, '/');
+                        if (Str::startsWith($urlPath, 'category/')) {
+                            $slug = Str::after($urlPath, 'category/');
+                        }
+                        $categoryData = $slug ? ($categoriesWithSubs[$slug] ?? null) : null;
+                    @endphp
+                    
+                    @if($categoryData)
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-navy-800/60 light:hover:bg-slate-100">
+                                <a href="{{ url($navItem->url) }}" class="text-sm font-medium text-text-secondary hover:text-text-primary">
+                                    {{ $navItem->title }}
+                                </a>
+                                <button onclick="toggleMobileSubmenu('sub-{{ $categoryData->slug }}')" class="p-2 text-text-muted hover:text-text-primary transition-transform" id="btn-sub-{{ $categoryData->slug }}" aria-label="Toggle submenu">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                            </div>
+                            <div id="sub-{{ $categoryData->slug }}" class="hidden pl-4 space-y-1">
+                                @foreach($categoryData->children as $subCat)
+                                    <a href="{{ route('category', $subCat->slug) }}" class="block px-3 py-2 rounded-lg text-xs font-medium text-text-muted hover:text-electric hover:bg-electric/5 transition-all">
+                                        — {{ $subCat->name }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ url($navItem->url) }}" class="block px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-navy-800/60 light:hover:bg-slate-100">{{ $navItem->title }}</a>
+                    @endif
                 @endforeach
             @endif
             <div class="pt-4 mt-4 border-t border-navy-700/30 light:border-slate-200">
@@ -159,5 +257,16 @@
             window.closeMobileNav();
         }
     });
+
+    window.toggleMobileSubmenu = function(id) {
+        const panel = document.getElementById(id);
+        const btn = document.getElementById('btn-' + id);
+        if (panel) {
+            panel.classList.toggle('hidden');
+            if (btn) {
+                btn.querySelector('svg').classList.toggle('rotate-180');
+            }
+        }
+    };
 })();
 </script>

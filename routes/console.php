@@ -33,3 +33,10 @@ Schedule::command('ga4:sync --days=2')
 
 
 Schedule::command('fetch:sports-fixtures')->hourly();
+
+// ── AI News Agent: research, write, and publish breaking news articles daily ──
+Schedule::command('agent:run-news')
+    ->dailyAt('04:00')
+    ->name('ai-news-agent-daily')
+    ->withoutOverlapping()
+    ->runInBackground();

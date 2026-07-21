@@ -27,6 +27,14 @@
         <h3 class="font-heading font-semibold text-text-primary mb-1">Cache Manager</h3>
         <p class="text-sm text-text-secondary">Clear view, application, config, and route caches.</p>
     </a>
+
+    <a href="{{ route('admin.tools.news-agent') }}" class="glass-card rounded-xl p-6 hover:bg-navy-800/60 transition-colors group">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/15 flex items-center justify-center mb-4 group-hover:bg-purple-500/25 transition-colors">
+            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <h3 class="font-heading font-semibold text-text-primary mb-1">AI News Agent</h3>
+        <p class="text-sm text-text-secondary">Deploy and monitor the autonomous AI news research, writing, and publishing agent.</p>
+    </a>
 </div>
 
 @endsection

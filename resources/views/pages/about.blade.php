@@ -57,7 +57,7 @@
 <section class="py-10 lg:py-16 overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="rounded-3xl overflow-hidden relative h-[400px] shadow-2xl">
-            <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Team at work" class="w-full h-full object-cover">
+            <img src="{{ asset('images/about-hero.jpg') }}" alt="Team at work" class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-navy-900 via-navy-900/40 to-transparent"></div>
             <div class="absolute bottom-10 left-10 md:left-16 right-10">
                 <blockquote class="font-heading text-2xl md:text-4xl font-bold text-white max-w-3xl leading-snug">

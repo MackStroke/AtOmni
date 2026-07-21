@@ -35,6 +35,13 @@ class PostController extends Controller
             $query->where('category_id', $categoryId);
         }
 
+        if ($tags = $request->input('tags')) {
+            $tagsArray = is_array($tags) ? $tags : [$tags];
+            $query->whereHas('tags', function($q) use ($tagsArray) {
+                $q->whereIn('tags.id', $tagsArray);
+            });
+        }
+
         $applyScoreFilter = function($query, $column, $value) {
             if ($value === 'best')  $query->where($column, '>=', 90);
             if ($value === 'good')  $query->whereBetween($column, [70, 89]);
@@ -138,11 +145,12 @@ class PostController extends Controller
 
         $posts = $query->paginate(15)->withQueryString();
         $categories = Category::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get();
         $authors = auth()->user()->role === 'author'
             ? \App\Models\User::where('id', auth()->id())->get()
             : \App\Models\User::orderBy('name')->get();
 
-        return view('admin.posts.index', compact('posts', 'categories', 'authors'));
+        return view('admin.posts.index', compact('posts', 'categories', 'tags', 'authors'));
     }
 
     public function create()

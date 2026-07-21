@@ -65,13 +65,36 @@ class AppServiceProvider extends ServiceProvider
             $footerLegal      = Menu::getByLocation('footer_legal');
             $footerResources  = Menu::getByLocation('footer_resources');
 
+            // Top-level categories with sub-categories for megamenu
+            $categoriesWithSubs = Category::whereNull('parent_id')
+                ->whereHas('children')
+                ->with(['children' => function($q) {
+                    $q->orderBy('sort_order')->withCount(['posts' => function($pq) {
+                        $pq->published();
+                    }]);
+                }])
+                ->get();
+
+            foreach ($categoriesWithSubs as $cat) {
+                $categoryIds = array_merge([$cat->id], $cat->children->pluck('id')->toArray());
+                $cat->latest_posts = Post::published()
+                    ->whereIn('category_id', $categoryIds)
+                    ->with(['author', 'category'])
+                    ->latest('published_at')
+                    ->take(3)
+                    ->get();
+            }
+
+            $categoriesWithSubs = $categoriesWithSubs->keyBy('slug');
+
             $view->with(compact(
                 'headerMenu',
                 'megaMenu',
                 'footerCompany',
                 'footerCategories',
                 'footerLegal',
-                'footerResources'
+                'footerResources',
+                'categoriesWithSubs'
             ));
         });
     }

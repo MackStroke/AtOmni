@@ -64,13 +64,41 @@
     AddCharset utf-8 .css .js .svg
 </IfModule>
 
-# ── Browser Caching ──────────────────────────────────────────
+# ── Browser Caching (mod_expires) ────────────────────────────
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Default expiry
+    ExpiresDefault "access plus 1 month"
+    
+    # CSS and JS (Vite handles hashing, so we can cache aggressively)
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+    
+    # Images
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/avif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+    
+    # Fonts
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/eot "access plus 1 year"
+    
+    # Other
+    ExpiresByType application/pdf "access plus 1 month"
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
 
-
-# ── Cache-Control Headers ────────────────────────────────────
+# ── Cache-Control Headers (mod_headers) ──────────────────────
 <IfModule mod_headers.c>
-    # Unset deprecated security and caching headers
-    Header always unset Expires
+    # Unset deprecated security headers
     Header always unset X-XSS-Protection
     Header always unset X-Frame-Options
 
@@ -81,15 +109,13 @@
 
     # Images/fonts: long cache
     <FilesMatch "\.(ico|jpg|jpeg|png|gif|webp|avif|svg|woff|woff2|ttf|eot)$">
-        Header set Cache-Control "public, max-age=15552000"
+        Header set Cache-Control "public, max-age=31536000"
     </FilesMatch>
 
     # HTML: no-cache
-    <FilesMatch "\.(html|php)$">
+    <FilesMatch "\.(html)$">
         Header set Cache-Control "no-cache"
     </FilesMatch>
-
-    # Security headers are managed dynamically by Laravel middleware (SecurityHeaders.php) to support local dev HMR.
 
     # Keep-Alive for reducing connection overhead
     Header set Connection keep-alive

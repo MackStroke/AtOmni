@@ -219,4 +219,101 @@ class ToolsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Show the News Agent page.
+     */
+    public function newsAgent(Request $request)
+    {
+        $settings = [
+            'news_agent_enabled' => \App\Models\Setting::get('news_agent_enabled', 'true'),
+            'news_agent_categories' => \App\Models\Setting::get('news_agent_categories', ''),
+            'news_agent_last_run_at' => \App\Models\Setting::get('news_agent_last_run_at', 'Never'),
+        ];
+
+        $categories = Category::all();
+        $recentPosts = Post::with(['category', 'author'])
+            ->latest('published_at')
+            ->take(10)
+            ->get();
+
+        return view('admin.tools.news-agent', compact('settings', 'categories', 'recentPosts'));
+    }
+
+    /**
+     * Trigger the news agent Artisan command.
+     */
+    public function runNewsAgent(Request $request)
+    {
+        $categorySlug = $request->input('category');
+        $dryRun = $request->boolean('dry_run');
+
+        try {
+            // Prevent timeouts for long running generation
+            set_time_limit(300);
+
+            // Clean the log file first to start fresh
+            $logPath = storage_path('logs/news-agent-run.log');
+            \Illuminate\Support\Facades\File::put($logPath, "=== Launching AI News Agent via Web Panel ===\n");
+
+            // We run the command.
+            // If they pass a category, run for that category. Otherwise run for all configured.
+            $params = [];
+            if ($categorySlug) {
+                $params['--category'] = $categorySlug;
+            }
+            if ($dryRun) {
+                $params['--dry-run'] = true;
+            }
+            $params['--force'] = true;
+
+            // Run command synchronously (log streaming via AJAX handles progress update)
+            Artisan::call('agent:run-news', $params);
+            $output = Artisan::output();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Agent run complete.',
+                'output' => $output
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Agent run failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save the news agent settings.
+     */
+    public function saveNewsAgentSettings(Request $request)
+    {
+        $request->validate([
+            'news_agent_enabled' => 'required|in:true,false',
+            'news_agent_categories' => 'nullable|array',
+        ]);
+
+        \App\Models\Setting::set('news_agent_enabled', $request->input('news_agent_enabled'));
+
+        $categories = $request->input('news_agent_categories', []);
+        $categoriesString = implode(',', $categories);
+        \App\Models\Setting::set('news_agent_categories', $categoriesString);
+
+        return redirect()->route('admin.tools.news-agent')->with('success', 'AI News Agent settings saved.');
+    }
+
+    /**
+     * Get the live run logs for news agent.
+     */
+    public function getNewsAgentLogs()
+    {
+        $logPath = storage_path('logs/news-agent-run.log');
+        if (!\Illuminate\Support\Facades\File::exists($logPath)) {
+            return response()->json(['logs' => 'No active logs found. Run the agent to see logs here.']);
+        }
+
+        $logs = \Illuminate\Support\Facades\File::get($logPath);
+        return response()->json(['logs' => $logs]);
+    }
 }

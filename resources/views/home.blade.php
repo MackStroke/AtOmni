@@ -7,53 +7,7 @@
 @section('title', $siteName . ' — ' . $tagline)
 
 
-@if(isset($dynamicSections) && $dynamicSections->count() > 0)
-{{-- "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
-     ",  DYNAMIC HOMEPAGE SECTIONS                                  ",
-     "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"? --}}
-<section id="dynamic-sections" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 space-y-12">
-    @foreach($dynamicSections as $section)
-        @php $sectionPosts = $section->getPosts(); @endphp
-        @if($sectionPosts->count() > 0)
-        <div class="border-b border-navy-700/50 pb-12 last:border-0 last:pb-0">
-            <div class="flex items-center gap-3 mb-6">
-                <h2 class="font-heading font-bold text-xl text-text-primary uppercase tracking-wide flex items-center gap-2">
-                    @if($section->category)
-                        <a href="{{ route('category', $section->category->slug) }}" class="hover:text-electric transition-colors">{{ $section->title }}</a>
-                        <svg class="w-5 h-5 text-electric" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    @else
-                        <span>{{ $section->title }}</span>
-                    @endif
-                </h2>
-            </div>
-            
-            @if($section->layout_type == 'grid')
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            @else
-                <div class="flex overflow-x-auto gap-6 pb-4 snap-x">
-            @endif
-            
-                @foreach($sectionPosts as $post)
-                <a href="{{ route('frontend.article', $post->slug) }}" class="block group flex flex-col {{ $section->layout_type != 'grid' ? 'shrink-0 w-[280px] snap-start' : '' }}">
-                    <div class="relative aspect-[4/3] rounded-xl overflow-hidden mb-3">
-                        @if($post->featured_image)
-                            <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                        @else
-                            <img src="{{ asset('images/atomni-placeholder.svg') }}" alt="Placeholder" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80">
-                        @endif
-                        <div class="absolute inset-0 bg-gradient-to-t from-navy-950/80 to-transparent opacity-50 group-hover:opacity-80 transition-opacity"></div>
-                    </div>
-                    <h3 class="font-heading font-semibold text-sm text-text-primary group-hover:text-electric transition-colors line-clamp-3">
-                        {{ $post->title }}
-                    </h3>
-                </a>
-                @endforeach
-            </div>
-        </div>
-        @endif
-    @endforeach
-</section>
-@endif
+
 {{-- ── LCP Preload: tell browser about the hero image before CSS is parsed ── --}}
 @php $lcpImage = collect($featuredPosts)->first()?->featuredImageUrl() ?? ''; @endphp
 @if($lcpImage)
@@ -158,7 +112,7 @@
                                 {{ $featuredPost->title }}
                             </h2>
                             <p class="text-text-secondary text-sm sm:text-base leading-relaxed mb-4 line-clamp-2 max-w-2xl">
-                                {{ $featuredPost->excerpt }}
+                                {{ $featuredPost->clean_excerpt }}
                             </p>
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-navy-700 overflow-hidden">
@@ -343,7 +297,7 @@
                         <h3 class="font-heading font-semibold text-base text-text-primary leading-snug mb-2 group-hover:text-electric-light transition-colors line-clamp-2">
                             {{ $post->title }}
                         </h3>
-                        <p class="text-text-secondary text-sm leading-relaxed mb-3 line-clamp-2">{{ $post->excerpt }}</p>
+                        <p class="text-text-secondary text-sm leading-relaxed mb-3 line-clamp-2">{{ $post->clean_excerpt }}</p>
                         <div class="flex items-center gap-3">
                             <div class="w-6 h-6 rounded-full bg-navy-700 overflow-hidden">
                                 @if($post->author && $post->author->avatar)
@@ -379,6 +333,54 @@
 {{-- ─────────────────────────────────────────────────────────────────
      │  SELECTED AUTHOR SECTION                                    │
      ───────────────────────────────────────────────────────────────── --}}
+@if(isset($dynamicSections) && $dynamicSections->count() > 0)
+{{-- ╔══════════════════════════════════════════════════════════════╗
+     ║  DYNAMIC HOMEPAGE SECTIONS                                  ║
+     ╚══════════════════════════════════════════════════════════════╝ --}}
+<section id="dynamic-sections" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 space-y-12">
+    @foreach($dynamicSections as $section)
+        @php $sectionPosts = $section->getPosts(); @endphp
+        @if($sectionPosts->count() > 0)
+        <div class="border-b border-navy-700/50 pb-12 last:border-0 last:pb-0">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-1 h-7 bg-electric rounded-full"></div>
+                <h2 class="font-heading font-bold text-2xl text-text-primary flex items-center gap-3">
+                    @if($section->category)
+                        <a href="{{ route('category', $section->category->slug) }}" class="hover:text-electric transition-colors">{{ $section->title }}</a>
+                        <svg class="w-5 h-5 text-electric" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    @else
+                        <span>{{ $section->title }}</span>
+                    @endif
+                </h2>
+            </div>
+            
+            @if($section->layout_type == 'grid' || $section->layout_type == 'standard_grid')
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @else
+                <div class="flex overflow-x-auto gap-6 pb-4 snap-x">
+            @endif
+            
+                @foreach($sectionPosts as $post)
+                <a href="{{ route('frontend.article', $post->slug) }}" class="block group flex flex-col {{ ($section->layout_type != 'grid' && $section->layout_type != 'standard_grid') ? 'shrink-0 w-[280px] snap-start' : '' }}">
+                    <div class="relative aspect-[4/3] rounded-xl overflow-hidden mb-3">
+                        @if($post->featured_image)
+                            <img src="{{ $post->featuredImageUrl() }}" alt="{{ $post->title }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                        @else
+                            <img src="{{ asset('images/atomni-placeholder.svg') }}" alt="Placeholder" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80">
+                        @endif
+                        <div class="absolute inset-0 bg-gradient-to-t from-navy-950/80 to-transparent opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                    </div>
+                    <h3 class="font-heading font-semibold text-sm text-text-primary group-hover:text-electric transition-colors line-clamp-3">
+                        {{ $post->title }}
+                    </h3>
+                </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    @endforeach
+</section>
+@endif
 @if(!empty($authorSectionEnabled) && $authorSectionEnabled && $authorSectionPosts->count() > 0)
 <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
     <div class="flex items-center gap-3 mb-6">
@@ -2164,7 +2166,7 @@
                             <span class="text-xs font-bold uppercase tracking-wider text-electric mb-1">{{ $post->category?->name }}</span>
                             @endif
                             <h3 class="font-heading font-semibold text-base text-text-primary leading-snug group-hover:text-electric-light transition-colors line-clamp-2">{{ $post->title }}</h3>
-                            <p class="text-text-secondary text-sm leading-relaxed mt-1 line-clamp-2 hidden sm:block">{{ $post->excerpt }}</p>
+                            <p class="text-text-secondary text-sm leading-relaxed mt-1 line-clamp-2 hidden sm:block">{{ $post->clean_excerpt }}</p>
                             <div class="text-xs text-text-muted mt-2">
                                 {{ $post->author?->name ?? 'Staff Writer' }} · {{ $post?->reading_time ?? 5 }} min read · {{ $post->published_at?->diffForHumans() ?? '' }}
                             </div>
@@ -2312,7 +2314,7 @@
                 <h3 class="font-heading font-bold text-2xl text-text-primary group-hover:text-electric transition-colors line-clamp-2">
                     {{ $firstVideo->title }}
                 </h3>
-                <p class="text-text-secondary mt-2 line-clamp-3 text-sm">{{ $firstVideo->excerpt }}</p>
+                <p class="text-text-secondary mt-2 line-clamp-3 text-sm">{{ $firstVideo->clean_excerpt }}</p>
             </button>
 
             {{-- 4 Small Videos (Right) --}}

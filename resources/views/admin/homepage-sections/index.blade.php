@@ -107,7 +107,7 @@
     </div>
 
     <!-- Right: Live Preview -->
-    <div class="glass-card rounded-2xl flex flex-col border border-navy-700/50" id="preview-container" style="height: 2500px;">
+    <div class="glass-card rounded-2xl flex flex-col border border-navy-700/50 sticky top-6" id="preview-container" style="height: calc(100vh - 48px); min-height: 600px;">
         <div class="bg-navy-800/50 px-4 py-3 border-b border-navy-700/30 flex flex-wrap items-center justify-between shrink-0 gap-3">
             <h3 class="font-bold text-text-primary flex items-center gap-2">
                 <svg class="w-4 h-4 text-electric" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
@@ -135,11 +135,11 @@
             </div>
         </div>
         
-        <div class="w-full flex-1 bg-navy-950/30 rounded-b-2xl flex justify-center items-start pt-4 pb-4 overflow-y-auto">
-            <div id="iframe-wrapper" class="bg-white transition-all duration-300 ease-in-out shadow-2xl border border-navy-700 rounded-lg overflow-hidden" style="width: 100%; height: 100%;">
-                <iframe id="preview-iframe" src="{{ route('home') }}#dynamic-sections" 
+        <div class="w-full flex-1 bg-navy-950/30 rounded-b-2xl relative overflow-hidden flex justify-center items-start" id="preview-bounds">
+            <div id="iframe-wrapper" class="absolute origin-top transition-all duration-300 shadow-2xl bg-white border border-navy-700 rounded-lg overflow-hidden pointer-events-none" style="width: 100%;">
+                <iframe id="preview-iframe" src="{{ route('home') }}" 
                         onload="resizeIframe(this)"
-                        class="w-full bg-white" style="min-height: 2500px;" frameborder="0">
+                        class="w-full bg-white" frameborder="0" scrolling="no">
                 </iframe>
             </div>
         </div>
@@ -180,8 +180,18 @@
     });
 
     function setPreviewWidth(width) {
-        document.getElementById('iframe-wrapper').style.width = width;
+        // Change the wrapper width
+        const wrapper = document.getElementById('iframe-wrapper');
+        wrapper.style.width = width;
         
+        // Let it layout, then recalculate scale
+        setTimeout(() => {
+            const iframe = document.getElementById('preview-iframe');
+            if (iframe.contentWindow) {
+                resizeIframe(iframe);
+            }
+        }, 50);
+
         // Update active button state
         document.querySelectorAll('.preview-btn').forEach(btn => {
             btn.classList.remove('active', 'bg-navy-700', 'text-white');
@@ -203,11 +213,33 @@
         try {
             // Attempt to auto-resize iframe to its internal content height
             var h = obj.contentWindow.document.documentElement.scrollHeight;
-            if (h > 1000) {
+            if (h > 500) {
                 obj.style.height = h + 'px';
             }
+            
+            // Calculate scale to fit container height
+            const wrapper = document.getElementById('iframe-wrapper');
+            const bounds = document.getElementById('preview-bounds');
+            
+            const boundsH = bounds.clientHeight;
+            // Add a little padding (e.g. 40px)
+            const scaleY = (boundsH - 40) / h;
+            
+            // Apply scale so the whole height is visible
+            // Restrict scale between 0.1 and 1
+            const scale = Math.max(0.1, Math.min(1, scaleY));
+            
+            wrapper.style.transform = 'scale(' + scale + ')';
+            
+            // If scale makes the width smaller than bounds width, center it horizontally by calculating left offset
+            // Actually origin-top takes care of it, we just need to use flex justify-center on the parent.
+            // But since it's absolute, flex justify won't work on it easily. We can use left: 50% and transform translateX(-50%)
+            wrapper.style.left = '50%';
+            wrapper.style.transform = 'translateX(-50%) scale(' + scale + ')';
+            wrapper.style.transformOrigin = 'top center';
+            
         } catch (e) {
-            // cross-origin or other error, fallback to min-height
+            console.log("Error resizing iframe", e);
         }
     }
 </script>

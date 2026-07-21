@@ -36,11 +36,7 @@
       @if($post->category)
       <category>{{ $post->category->name }}</category>
       @endif
-      @if($post->excerpt)
-      <description>{{ $post->excerpt }}</description>
-      @else
-      <description>{{ \Illuminate\Support\Str::limit(strip_tags($post->content), 300) }}</description>
-      @endif
+      <description>{{ $post->clean_excerpt }}</description>
       <content:encoded><![CDATA[{!! $post->content !!}]]></content:encoded>
       @php $imgUrl = $post->featuredImageUrl(); @endphp
       @if($imgUrl && !str_ends_with($imgUrl, "atomni-placeholder.svg"))

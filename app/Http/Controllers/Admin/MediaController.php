@@ -123,9 +123,9 @@ class MediaController extends Controller
             $filenameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
             $safeName = Str::slug($filenameWithoutExt) . '-' . time() . '-' . Str::random(4);
             $isImage = Str::startsWith($mimeType, 'image/');
-            $isSvgOrGif = in_array(strtolower($extension), ['svg', 'gif']);
+            $isSvg = strtolower($extension) === 'svg' || $mimeType === 'image/svg+xml';
 
-            if ($isImage && !$isSvgOrGif) {
+            if ($isImage && !$isSvg) {
                 // Process image via Intervention
                 $image = $manager->read($file);
 
@@ -154,11 +154,11 @@ class MediaController extends Controller
                 ]);
 
             } else {
-                // Video, audio, document, svg, gif
+                // Video, audio, document, svg
                 $folder = 'uploads';
                 if (Str::startsWith($mimeType, 'video/')) $folder = 'videos';
                 elseif (Str::startsWith($mimeType, 'audio/')) $folder = 'audio';
-                elseif (in_array($extension, ['svg', 'gif']) || Str::startsWith($mimeType, 'image/')) $folder = 'images';
+                elseif ($extension === 'svg' || Str::startsWith($mimeType, 'image/')) $folder = 'images';
 
                 $path = $file->storeAs($folder, $safeName . '.' . $extension, 'public');
                 $sizeKb = $file->getSize() / 1024;

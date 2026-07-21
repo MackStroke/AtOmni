@@ -217,7 +217,7 @@
             
             <!-- Desktop Table -->
             <div class="overflow-x-auto hidden md:block">
-                <x-admin.bulk-actions resource="media" :actions="['auto_fill' => 'Auto-Fill with AI', 'delete' => 'Delete']" />
+                <x-admin.bulk-actions resource="media" :actions="['auto_fill' => 'Auto-Fill with AI', 'download' => 'Download Selected', 'delete' => 'Delete']" />
                 <table class="w-full text-sm text-left mt-3">
                     <thead class="bg-navy-800/50 light:bg-slate-100 text-text-secondary uppercase text-xs font-semibold tracking-wider border-b border-navy-700/30 light:border-slate-200">
                         <tr>
@@ -453,6 +453,7 @@
 
             <div class="mt-auto pt-6 flex flex-col gap-2">
                 <button onclick="copyDetailUrl()" class="px-4 py-2 bg-navy-800 hover:bg-navy-700 transition-colors rounded-lg text-sm text-text-primary font-bold">Copy URL</button>
+                <a href="" download id="btn-detail-download" class="px-4 py-2 bg-navy-800 hover:bg-navy-700 transition-colors rounded-lg text-sm text-text-primary font-bold text-center block">Download File</a>
                 <button type="button" onclick="toggleEditImageMode()" id="btn-edit-image-toggle" class="px-4 py-2 bg-navy-800 hover:bg-navy-700 transition-colors rounded-lg text-sm text-text-primary font-bold hidden">Edit Image</button>
                 
                 <form id="delete-original-form" method="POST" class="hidden" onsubmit="return confirm('Are you sure you want to delete the uncompressed original file to save space? The WebP version will be kept.')">
@@ -477,6 +478,10 @@
         <button type="button" onclick="submitGridBulkAction('auto_fill')" class="px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border border-emerald-500/20">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             Auto-Fill AI
+        </button>
+        <button type="button" onclick="submitGridBulkAction('download')" class="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border border-blue-500/20">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Selected
         </button>
         <button type="button" onclick="submitGridBulkAction('delete')" class="px-4 py-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border border-rose-500/20">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -618,7 +623,7 @@
 
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ route('admin.bulk', 'media') }}';
+        form.action = '{{ route('admin.bulk.handle', 'media') }}';
         
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
@@ -920,6 +925,12 @@
         document.getElementById('detail-modal').classList.remove('hidden');
         
         currentDetailUrl = assetBase + '/' + (fileData.webp_path || fileData.file_path);
+        
+        const downloadBtn = document.getElementById('btn-detail-download');
+        if (downloadBtn) {
+            downloadBtn.href = assetBase + '/' + fileData.file_path;
+            downloadBtn.setAttribute('download', fileData.file_name);
+        }
         
         const preview = document.getElementById('detail-preview');
         const icon = document.getElementById('detail-icon');

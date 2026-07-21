@@ -43,7 +43,7 @@
                                 <h3 class="font-heading font-semibold text-base text-text-primary leading-snug mb-2 group-hover:text-electric-light transition-colors line-clamp-2">
                                     {{ $post->title }}
                                 </h3>
-                                <p class="text-text-secondary text-sm leading-relaxed mb-3 line-clamp-2">{{ $post->excerpt }}</p>
+                                <p class="text-text-secondary text-sm leading-relaxed mb-3 line-clamp-2">{{ $post->clean_excerpt }}</p>
                                 <div class="flex items-center justify-between text-xs text-text-muted">
                                     <span>{{ $post->author?->name ?? 'Staff Writer' }}</span>
                                     <span>{{ $post?->reading_time ?? 5 }} min · {{ $post->published_at?->diffForHumans() ?? '' }}</span>

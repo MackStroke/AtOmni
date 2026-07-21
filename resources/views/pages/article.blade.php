@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', \Illuminate\Support\Str::limit($post->title, 60) . ' | ' . \App\Models\Setting::get('site_name', 'Atomni'))
-@section('meta-description', \Illuminate\Support\Str::limit($post?->excerpt ?? \Illuminate\Support\Str::limit(strip_tags($post->content), 155), 155))
+@section('title', preg_replace('/\s+?(\S+)?$/', '', mb_substr($post->title, 0, 61)) . ' | ' . \App\Models\Setting::get('site_name', 'Atomni'))
+@section('meta-description', \Illuminate\Support\Str::limit($post?->clean_excerpt ?? '', 155))
 @php
     $isValidRedirect = !empty($post->redirect_url) && filter_var($post->redirect_url, FILTER_VALIDATE_URL);
     $isThinSyndication = $post->is_rss && $isValidRedirect && str_word_count(strip_tags($post->content)) < 300;
@@ -58,7 +58,7 @@
         "@type" => "NewsArticle",
         "@id" => $articleUrl,
         "headline" => $post->title,
-        "description" => $post?->excerpt ?? \Illuminate\Support\Str::limit(strip_tags($post->content), 150),
+        "description" => $post?->clean_excerpt ?? '',
         "image" => [
             "@type" => "ImageObject",
             "url" => $imageUrl,
@@ -294,7 +294,7 @@
         @endif
 
         <p class="text-text-secondary text-lg leading-relaxed max-w-3xl mb-6">
-            {{ $post->excerpt }}
+            {{ $post->clean_excerpt }}
         </p>
         
         <address class="flex items-center gap-4 not-italic py-4 border-y border-navy-700/30" rel="author">
@@ -368,13 +368,13 @@
                         <p class="text-text-secondary text-[15px] leading-relaxed">{{ $post->tldr }}</p>
                     </div>
                 </div>
-                @elseif($post->excerpt)
+                @elseif($post->clean_excerpt)
                 <div class="mb-8 p-4 rounded-xl border-l-4 border-electric bg-electric/5 flex gap-3 shadow-sm" role="note" aria-label="Quick Summary">
                     <div class="shrink-0 mt-0.5">
                         <svg class="w-5 h-5 text-electric" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <div>
-                        <p class="text-text-secondary text-sm leading-relaxed">{{ $post->excerpt }}</p>
+                        <p class="text-text-secondary text-sm leading-relaxed">{{ $post->clean_excerpt }}</p>
                     </div>
                 </div>
                 @endif
